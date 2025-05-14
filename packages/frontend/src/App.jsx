@@ -1,8 +1,8 @@
-import React, { useEffect } from "react";
-import { Routes, Route, Link, useLocation } from "react-router-dom";
+import { Suspense, lazy } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { ErrorBoundary } from 'react-error-boundary';
 
-import viteLogo from '/vite.svg'
-import './App.css'
+import './App.css';
 
 //stylesheets
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -10,74 +10,45 @@ import "primereact/resources/themes/lara-light-indigo/theme.css";  //theme
 import "primereact/resources/primereact.min.css";                  //core css
 import "primeicons/primeicons.css";  
 
-//components 
-import TutorialsList from "./components/TutorialsList";
-import AddTutorial from "./components/AddTutorial";
-import Tutorial from "./components/Tutorial";
-import Published from "./components/Published";
-import PageNotFound from "./components/PageNotFound";
+// Layout Components
+import MainLayout from './layouts/MainLayout';
+import PageLoader from './components/common/PageLoader';
+import ErrorFallback from './components/common/ErrorFallback';
+
+// Lazy load components for better performance
+const TutorialsList = lazy(() => import("./components/TutorialsList"));
+const AddTutorial = lazy(() => import("./components/AddTutorial"));
+const Tutorial = lazy(() => import("./components/Tutorial"));
+const TutorialView = lazy(() => import("./components/TutorialView"));
+const Published = lazy(() => import("./components/Published"));
+const PageNotFound = lazy(() => import("./components/PageNotFound"));
+const Dashboard = lazy(() => import("./components/Dashboard"));
+const Analytics = lazy(() => import("./components/Analytics"));
 
 function App() {
-
-  try {
-    throw new Error('error custom');
-  } catch (error) {
-    console.log(error)
-
-  }
-
-
-  // window.newrelic.setPageViewName('Home');
-
-  const location = useLocation();
-
-  useEffect(() => {
-    console.log(`Entered anon -> ${window.newrelic}`)
-    // window.newrelic.addPageAction('navigation', { path: location.pathname })
-
-  }, [location]);
-
   return (
-    <>
-  <div>
-      <nav className="navbar navbar-expand navbar-dark bg-dark">
-        <a href="/" className="navbar-brand">
-        <img src={viteLogo} alt="Vite logo" height={40}/>
-          <span className="pl-1">React App</span>
-        </a>
-        <div className="navbar-nav mr-auto">
-          <li className="nav-item">
-            <Link to={"/tutorials"} className="nav-link">
-              Tutorials
-            </Link>
-          </li>
-          <li className="nav-item">
-            <Link to={"/add"} className="nav-link">
-              Add
-            </Link>
-          </li>
-          <li className="nav-item">
-            <Link to={"/published"} className="nav-link">
-              Published Tutorials
-            </Link>
-          </li>
-        </div>
-      </nav>
-
-      <div className="container-fluid mt-3">
-        <Routes>
-          <Route path="/" element={<TutorialsList />} />
-          <Route path="/tutorials" element={<TutorialsList />} />
-          <Route path="/published" element={<Published />} />
-          <Route path="/add" element={<AddTutorial />} />
-          <Route path="/tutorials/:id" element={<Tutorial />} />
-          <Route path="*" element={<PageNotFound />}/>
-          <Route path="/404/:id" element={<PageNotFound />}/>
-        </Routes>
-      </div>
-    </div>
-    </>
-  )
+    <ErrorBoundary 
+      FallbackComponent={ErrorFallback}
+      onReset={() => window.location.href = '/'}
+    >
+      <MainLayout>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/" element={<Navigate to="/tutorials" replace />} />
+            <Route path="/tutorials" element={<TutorialsList />} />
+            <Route path="/published" element={<Published />} />
+            <Route path="/add" element={<AddTutorial />} />
+            <Route path="/tutorials/:id" element={<Tutorial />} />
+            <Route path="/view/:id" element={<TutorialView />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/404/:id" element={<PageNotFound />}/>
+            <Route path="*" element={<PageNotFound />}/>
+          </Routes>
+        </Suspense>
+      </MainLayout>
+    </ErrorBoundary>
+  );
 }
 
-export default App
+export default App;

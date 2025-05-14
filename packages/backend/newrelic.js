@@ -9,12 +9,12 @@ exports.config = {
   /**
    * Array of application names.
    */
-  app_name: ['<YOUR APP NAME>'],
+  app_name: ['Tutorials API'],
   // app_name: ['my-instruct-lab-apm'],
   /**
    * Your New Relic license key.
    */
-  license_key: '<INSERT YOUR NR LICENSE KEY>',
+  license_key: 'YOUR_LICENSE_KEY',
   logging: {
     /**
      * Level at which to log. 'trace' is most useful to New Relic when diagnosing
@@ -25,8 +25,7 @@ exports.config = {
   },
   /**
    * When true, all request headers except for those listed in attributes.exclude
-   * will be captured for all traces, unless otherwise specified in a destination's
-   * attributes include/exclude lists.
+   * will be captured for all traces, regardless of the security level
    */
   allow_all_headers: true,
   application_logging: {
@@ -38,6 +37,9 @@ exports.config = {
     }
   },
   distributed_tracing: {
+    /**
+     * Enables/disables distributed tracing.
+     */
     enabled: true
   },
   attributes: {
@@ -60,6 +62,25 @@ exports.config = {
       'response.headers.proxyAuthorization',
       'response.headers.setCookie*',
       'response.headers.x*'
+    ]
+  },
+  /**
+   * Transaction tracer settings
+   */
+  transaction_tracer: {
+    enabled: true,
+    record_sql: 'obfuscated',
+    explain_threshold: 500
+  },
+  /**
+   * Environment-specific settings
+   */
+  rules: {
+    name: [
+      { pattern: /^\/api\/tutorials$/, name: '/api/tutorials' },
+      { pattern: /^\/api\/tutorials\/\w+$/, name: '/api/tutorials/:id' },
+      { pattern: /^\/api\/tutorials\/\w+\/published$/, name: '/api/tutorials/:id/published' },
+      { pattern: /^\/api\/tutorials\/categories$/, name: '/api/tutorials/categories' }
     ]
   }
 }

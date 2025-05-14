@@ -26,5 +26,8 @@
   "license": "ISC",
   "devDependencies": {
     "concurrently": "^8.0.1"
+  },
+  "dependencies": {
+    "chart.js": "^4.4.9"
   }
-} 
+}

@@ -12,7 +12,11 @@ module.exports = app => {
   // Retrieve all published Tutorials
   router.get("/published", tutorials.findAllPublished);
   
+  // Get all tutorial categories
   router.get("/categories", tutorials.getCategories);
+
+  // Get tutorials by difficulty level
+  router.get("/difficulty/:difficulty", tutorials.findByDifficulty);
 
   // Retrieve a single Tutorial with id
   router.get("/:id", tutorials.findOne);
@@ -20,10 +24,16 @@ module.exports = app => {
   // Update a Tutorial with id
   router.put("/:id", tutorials.update);
 
+  // Update view count for a tutorial
+  router.post("/:id/view", tutorials.updateViewCount);
+
+  // Update likes for a tutorial
+  router.post("/:id/like", tutorials.updateLikes);
+
   // Delete a Tutorial with id
   router.delete("/:id", tutorials.delete);
 
-  // Create a new Tutorial
+  // Delete all Tutorials
   router.delete("/", tutorials.deleteAll);
 
   app.use("/api/tutorials", router);

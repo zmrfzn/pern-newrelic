@@ -17,6 +17,13 @@ exports.create = (req, res) => {
     description: req.body.description,
     category: req.body.category,
     published: req.body.published ? req.body.published : false,
+    author: req.body.author || "",
+    readTime: req.body.readTime,
+    difficulty: req.body.difficulty,
+    tags: req.body.tags,
+    imageUrl: req.body.imageUrl,
+    viewCount: 0,
+    likes: 0
   };
 
   // Save Tutorial in the database
@@ -259,25 +266,103 @@ exports.findAllPublished = (req, res) => {
     });
 };
 
+// Update view count
+exports.updateViewCount = (req, res) => {
+  const id = req.params.id;
+  
+  Tutorial.findByPk(id)
+    .then(tutorial => {
+      if (!tutorial) {
+        return res.status(404).send({
+          message: `Tutorial with id=${id} not found`
+        });
+      }
+      
+      return Tutorial.update(
+        { viewCount: tutorial.viewCount + 1 }, 
+        { where: { id: id } }
+      );
+    })
+    .then(() => {
+      res.send({ message: "View count updated successfully" });
+    })
+    .catch(err => {
+      res.status(500).send({
+        message: `Error updating view count: ${err.message}`
+      });
+    });
+};
+
+// Update likes
+exports.updateLikes = (req, res) => {
+  const id = req.params.id;
+  const { increment } = req.body;
+  
+  Tutorial.findByPk(id)
+    .then(tutorial => {
+      if (!tutorial) {
+        return res.status(404).send({
+          message: `Tutorial with id=${id} not found`
+        });
+      }
+      
+      const newCount = increment ? tutorial.likes + 1 : Math.max(0, tutorial.likes - 1);
+      return Tutorial.update(
+        { likes: newCount }, 
+        { where: { id: id } }
+      );
+    })
+    .then(() => {
+      res.send({ message: "Likes updated successfully" });
+    })
+    .catch(err => {
+      res.status(500).send({
+        message: `Error updating likes: ${err.message}`
+      });
+    });
+};
+
 exports.getCategories = (req, res) => {
   logger.info(`${req.method} ${req.originalUrl} - Request Successful!!`);
   logger.info(`${req.method} ${req.originalUrl} : Fetched ${categories.length} records`);
   res.send(categories)
 }
 
-const categories = [{
-  "id": 1,
-  "category": "Frameworks"
+// Get tutorials by difficulty level
+exports.findByDifficulty = (req, res) => {
+  const difficulty = req.params.difficulty;
+  
+  Tutorial.findAll({ where: { difficulty: difficulty } })
+    .then(data => {
+      logger.info(`${req.method}: Fetched ${data.length} records with difficulty ${difficulty}`);
+      res.send(data);
+    })
+    .catch(err => {
+      res.status(500).send({
+        message: `Error retrieving tutorials with difficulty ${difficulty}: ${err.message}`
+      });
+    });
+};
+
+const categories = [{ 
+  "id": 1, 
+  "category": "Random"
 }, {
   "id": 2,
-  "category": "DIY|How To"
+  "category": "Web Development"
 }, {
   "id": 3,
-  "category": "Soft Skills"
+  "category": "Mobile Development"
 }, {
   "id": 4,
-  "category": "Children"
+  "category": "Data Science"
 }, {
   "id": 5,
-  "category": "Style"
-}, { "id" : 6, "category": "Random"}]
+  "category": "DevOps"
+}, {
+  "id": 6,
+  "category": "Design"
+}, {
+  "id": 7,
+  "category": "Career"
+}]

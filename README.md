@@ -92,3 +92,36 @@ DB_PORT=5432
 ## References
 
 For detailed documentation, refer to the README.md files in each package directory.
+
+# PERN Stack Tutorial Application
+
+## How to Apply Database Changes
+
+After pulling these changes, you'll need to apply them to your database. Follow these steps:
+
+### Option 1: Using Sequelize CLI Directly
+
+```bash
+cd pern/packages/backend
+
+# Undo existing seeds
+npx sequelize-cli db:seed:undo:all
+
+# Undo existing migrations
+npx sequelize-cli db:migrate:undo:all
+
+# Apply the updated migrations
+npx sequelize-cli db:migrate
+
+# Apply the updated seeds
+npx sequelize-cli db:seed:all
+```
+
+### Option 2: Using the Initialize Script (if available)
+
+```bash
+cd pern/packages/backend
+npm run initialize
+```
+
+This will recreate the database with the proper schema and seed data.

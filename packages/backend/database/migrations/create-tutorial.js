@@ -13,7 +13,7 @@ module.exports = {
         type: Sequelize.STRING
       },
       description: {
-        type: Sequelize.STRING
+        type: Sequelize.TEXT
       },
       author: {
         type: Sequelize.STRING,
@@ -25,6 +25,33 @@ module.exports = {
       },
       published: {
         type: Sequelize.BOOLEAN
+      },
+      readTime: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+        comment: 'Estimated read time in minutes'
+      },
+      difficulty: {
+        type: Sequelize.ENUM('beginner', 'intermediate', 'advanced'),
+        defaultValue: 'beginner',
+        allowNull: true
+      },
+      tags: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        comment: 'Comma-separated tags'
+      },
+      imageUrl: {
+        type: Sequelize.STRING,
+        allowNull: true
+      },
+      viewCount: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0
+      },
+      likes: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0
       },
       createdAt: {
         type: Sequelize.DATE,

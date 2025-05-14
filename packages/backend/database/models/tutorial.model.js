@@ -24,7 +24,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING
     },
     description: {
-      type: DataTypes.STRING
+      type: DataTypes.TEXT
     },
     author: {
       type: DataTypes.STRING,
@@ -36,6 +36,33 @@ module.exports = (sequelize, DataTypes) => {
     },
     published: {
       type: DataTypes.BOOLEAN
+    },
+    readTime: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      comment: 'Estimated read time in minutes'
+    },
+    difficulty: {
+      type: DataTypes.ENUM('beginner', 'intermediate', 'advanced'),
+      defaultValue: 'beginner',
+      allowNull: true
+    },
+    tags: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Comma-separated tags'
+    },
+    imageUrl: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    viewCount: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0
+    },
+    likes: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0
     },
     createdAt: {
       type: DataTypes.DATE,
