@@ -89,10 +89,6 @@ DB_NAME=tutorial_db
 DB_PORT=5432
 ```
 
-## Git Setup
-
-See the `GIT_SETUP.md` file for instructions on setting up git for this monorepo.
-
 ## References
 
 For detailed documentation, refer to the README.md files in each package directory.
