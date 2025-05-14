@@ -1,0 +1,12 @@
+{
+  "pause": 2500,
+  "workers": 4,
+  "timeout": 1000,
+  "urls": [
+    "http://localhost:8080/api/{endpoints}",
+    "http://localhost:8080/api/{endpoints}"
+  ],
+  "values": {
+    "endpoints": ["tutorials", "tutorials/categories","tutorials/published"]
+  }
+}

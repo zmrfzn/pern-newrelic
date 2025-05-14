@@ -1,0 +1,30 @@
+{
+  "name": "pern-monorepo",
+  "version": "1.0.0",
+  "description": "PERN Stack Monorepo with React Frontend and Express Backend",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+    "start:frontend": "cd packages/frontend && npm start",
+    "start:backend": "cd packages/backend && npm start",
+    "install:frontend": "cd packages/frontend && npm install",
+    "install:backend": "cd packages/backend && npm install",
+    "initialize:db": "cd packages/backend && npm run initialize"
+  },
+  "keywords": [
+    "pern",
+    "monorepo",
+    "react",
+    "node",
+    "express",
+    "postgresql"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^8.0.1"
+  }
+} 
