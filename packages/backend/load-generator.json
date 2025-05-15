@@ -4,9 +4,13 @@
   "timeout": 1000,
   "urls": [
     "http://localhost:8080/api/{endpoints}",
-    "http://localhost:8080/api/{endpoints}"
+    "http://localhost:8080/api/{endpoints}/{ids}",
+    "http://localhost:8080/api/{endpoints}/published",
+    "http://localhost:8080/api/{endpoints}/categories",
+    "http://localhost:8080/api/{endpoints}/difficulty/{difficulty_levels}"
   ],
   "values": {
-    "endpoints": ["tutorials", "tutorials/categories","tutorials/published"]
+    "endpoints": ["tutorials"],
+    "difficulty_levels": ["beginner", "intermediate", "advanced"]
   }
 }
