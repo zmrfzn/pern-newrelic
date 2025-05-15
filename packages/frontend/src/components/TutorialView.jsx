@@ -9,6 +9,7 @@ import { ProgressBar } from 'primereact/progressbar';
 import { Toast } from 'primereact/toast';
 import { Divider } from 'primereact/divider';
 import { mapDifficulty, mapCategories } from "../services/Util";
+import ActionButtons from "./common/ActionButtons";
 
 const TutorialView = () => {
   const { id } = useParams();
@@ -18,7 +19,6 @@ const TutorialView = () => {
   const [tutorial, setTutorial] = useState(null);
   const [loading, setLoading] = useState(true);
   const [relatedTutorials, setRelatedTutorials] = useState([]);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     loadTutorial();
@@ -58,7 +58,7 @@ const TutorialView = () => {
       setLoading(false);
     } catch (error) {
       console.error("Error loading tutorial:", error);
-      setError(`Tutorial not found`);
+      navigate('/404');
       setLoading(false);
     }
   };
@@ -137,6 +137,20 @@ const TutorialView = () => {
     });
   };
 
+  const handleCancel = () => {
+    navigate('/tutorials');
+  };
+
+  const handleShare = () => {
+    navigator.clipboard.writeText(window.location.href);
+    toast.current.show({
+      severity: 'info',
+      summary: 'Link Copied',
+      detail: 'Tutorial link copied to clipboard',
+      life: 3000
+    });
+  };
+
   if (loading) {
     return (
       <div className="p-5 text-center">
@@ -154,13 +168,15 @@ const TutorialView = () => {
     <div className="tutorial-view p-4">
       <Toast ref={toast} position="bottom-right" />
       
-      <div className="mb-3">
-        <Button 
-          icon="pi pi-arrow-left" 
-          label="Back to Tutorials" 
-          className="p-button-outlined p-button-secondary"
-          onClick={() => navigate('/tutorials')}
-        />
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-start mb-4">
+        <h2 className="mb-0">Tutorial</h2>
+        <div className="mt-3 mt-md-0">
+          <ActionButtons
+            onCancel={handleCancel}
+            cancelLabel="Back to Tutorials"
+            showSave={false}
+          />
+        </div>
       </div>
       
       <Card className="tutorial-card shadow mb-4">
@@ -231,15 +247,7 @@ const TutorialView = () => {
             icon="pi pi-share-alt"
             label="Share"
             className="p-button-outlined"
-            onClick={() => {
-              navigator.clipboard.writeText(window.location.href);
-              toast.current.show({
-                severity: 'info',
-                summary: 'Link Copied',
-                detail: 'Tutorial link copied to clipboard',
-                life: 3000
-              });
-            }}
+            onClick={handleShare}
           />
         </div>
       </Card>

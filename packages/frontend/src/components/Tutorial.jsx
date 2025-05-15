@@ -5,7 +5,6 @@ import { Card } from 'primereact/card';
 import { Chip } from 'primereact/chip';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
-import { Button } from 'primereact/button';
 import { Dropdown } from 'primereact/dropdown';
 import { Toast } from 'primereact/toast';
 import { Divider } from 'primereact/divider';
@@ -15,6 +14,7 @@ import { Tag } from 'primereact/tag';
 import { InputNumber } from 'primereact/inputnumber';
 import { Chips } from 'primereact/chips';
 import { mapDifficulty } from "../services/Util";
+import ActionButtons from "./common/ActionButtons";
 
 const Tutorial = () => {
   const toast = useRef(null);
@@ -230,6 +230,10 @@ const Tutorial = () => {
       });
   };
 
+  const handleCancel = () => {
+    navigate("/tutorials");
+  };
+
   if (loading) {
     return (
       <div className="p-5 text-center">
@@ -281,37 +285,19 @@ const Tutorial = () => {
         </div>
         
         <div className="mt-3 mt-md-0">
-          <Button
-            icon="pi pi-arrow-left"
-            label="Back to List"
-            className="p-button-outlined p-button-secondary mr-2"
-            onClick={() => navigate("/tutorials")}
-          />
-          
-          {tutorial.published ? (
-            <Button
-              icon="pi pi-eye-slash"
-              label="Unpublish"
-              className="p-button-warning mr-2"
-              onClick={togglePublished}
-              disabled={processing}
-            />
-          ) : (
-            <Button
-              icon="pi pi-check-circle"
-              label="Publish"
-              className="p-button-success mr-2"
-              onClick={togglePublished}
-              disabled={processing}
-            />
-          )}
-          
-          <Button
-            icon="pi pi-trash"
-            label="Delete"
-            className="p-button-danger"
-            onClick={confirmDeleteTutorial}
-            disabled={processing}
+          <ActionButtons
+            onCancel={handleCancel}
+            onSave={saveTutorial}
+            onDelete={confirmDeleteTutorial}
+            onPublish={togglePublished}
+            onUnpublish={togglePublished}
+            saveDisabled={!dirty || processing}
+            showDelete={true}
+            showPublish={true}
+            isPublished={tutorial.published}
+            processing={processing}
+            saveLabel="Save Changes"
+            cancelLabel="Back to List"
           />
         </div>
       </div>
@@ -327,7 +313,7 @@ const Tutorial = () => {
                 value={tutorial.title}
                 onChange={handleInputChange}
                 className="w-100"
-                placeholder="Enter tutorial title"
+                placeholder="E.g., Getting Started with React Hooks for Beginners"
                 required
               />
             </div>
@@ -357,7 +343,7 @@ const Tutorial = () => {
                     value={tutorial.author || ''}
                     onChange={handleInputChange}
                     className="w-100"
-                    placeholder="Enter author name"
+                    placeholder="E.g., John Smith"
                   />
                 </div>
               </div>
@@ -400,7 +386,7 @@ const Tutorial = () => {
                 value={tutorial.imageUrl || ''}
                 onChange={handleInputChange}
                 className="w-100"
-                placeholder="Enter image URL"
+                placeholder="E.g., https://example.com/images/tutorial-banner.jpg"
               />
               {tutorial.imageUrl && (
                 <div className="mt-2">
@@ -422,8 +408,9 @@ const Tutorial = () => {
                 onChange={(e) => onTagsChange(e.value)}
                 separator=","
                 className="w-100"
-                placeholder="Add tags and press Enter"
+                placeholder="Add tags like 'javascript', 'react', 'frontend' and press Enter"
               />
+              <small className="text-muted">Press Enter after each tag</small>
             </div>
             
             <div className="mb-3">
@@ -436,7 +423,7 @@ const Tutorial = () => {
                 rows={6}
                 className="w-100"
                 autoResize
-                placeholder="Enter tutorial description"
+                placeholder="Provide a detailed description of your tutorial. Include what readers will learn, prerequisites, and why this tutorial is valuable."
               />
             </div>
           </div>
@@ -496,23 +483,6 @@ const Tutorial = () => {
           </div>
         </div>
       </Card>
-      
-      <div className="d-flex justify-content-between mt-4">
-        <Button
-          icon="pi pi-times"
-          label="Cancel"
-          className="p-button-outlined p-button-secondary"
-          onClick={() => navigate("/tutorials")}
-        />
-        
-        <Button
-          icon="pi pi-save"
-          label="Save Changes"
-          className="p-button-primary"
-          onClick={saveTutorial}
-          disabled={!dirty || processing}
-        />
-      </div>
     </div>
   );
 };

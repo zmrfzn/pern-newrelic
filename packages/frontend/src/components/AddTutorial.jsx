@@ -4,11 +4,11 @@ import TutorialDataService from "../services/TutorialService";
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { Dropdown } from 'primereact/dropdown';
-import { Button } from 'primereact/button';
 import { Card } from 'primereact/card';
 import { Toast } from 'primereact/toast';
 import { InputNumber } from 'primereact/inputnumber';
 import { Chips } from 'primereact/chips';
+import ActionButtons from "./common/ActionButtons";
 
 const AddTutorial = () => {
   const navigate = useNavigate();
@@ -80,6 +80,10 @@ const AddTutorial = () => {
     setTutorial({...tutorial, 'tags': tags.join(',')});
   };
 
+  const handleCancel = () => {
+    navigate("/tutorials");
+  };
+
   const saveTutorial = () => {
     if (!tutorial.title) {
       toast.current.show({
@@ -137,12 +141,16 @@ const AddTutorial = () => {
       
       <div className="d-flex flex-column flex-md-row justify-content-between align-items-start mb-4">
         <h2>Add New Tutorial</h2>
-        <Button
-          icon="pi pi-arrow-left"
-          label="Back to List"
-          className="p-button-outlined p-button-secondary mt-3 mt-md-0"
-          onClick={() => navigate("/tutorials")}
-        />
+        <div className="mt-3 mt-md-0">
+          <ActionButtons 
+            onCancel={handleCancel}
+            onSave={saveTutorial}
+            saveLabel="Create Tutorial"
+            cancelLabel="Back to List"
+            saveDisabled={processing}
+            processing={processing}
+          />
+        </div>
       </div>
       
       <Card className="shadow-sm mb-4">
@@ -294,23 +302,6 @@ const AddTutorial = () => {
           </div>
         </div>
       </Card>
-      
-      <div className="d-flex justify-content-between mt-4">
-        <Button
-          icon="pi pi-times"
-          label="Cancel"
-          className="p-button-outlined p-button-secondary"
-          onClick={() => navigate("/tutorials")}
-        />
-        
-        <Button
-          icon="pi pi-save"
-          label="Create Tutorial"
-          className="p-button-primary"
-          onClick={saveTutorial}
-          disabled={processing}
-        />
-      </div>
     </div>
   );
 };

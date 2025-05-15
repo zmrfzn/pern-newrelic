@@ -46,12 +46,12 @@ const MainLayout = ({ children }) => {
           ))}
         </div>
         
-        <div className="ml-auto d-flex align-items-center">
+        {/* <div className="ml-auto d-flex align-items-center">
           <Button 
             icon="pi pi-user" 
             className="p-button-rounded p-button-text p-button-plain text-white"
           />
-        </div>
+        </div> */}
       </header>
 
       {/* Mobile Sidebar */}
