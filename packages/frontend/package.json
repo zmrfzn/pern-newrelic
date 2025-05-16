@@ -8,7 +8,7 @@
     "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0"
   },
   "dependencies": {
-    "axios": "^0.26.1",
+    "axios": "^0.27.2",
     "bootstrap": "^4.6.0",
     "primeicons": "^6.0.1",
     "primereact": "^8.7.3",

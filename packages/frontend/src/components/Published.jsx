@@ -20,19 +20,69 @@ const Published = () => {
     const [processing, setProcessing] = useState(false);
 
     useEffect(() => {
+        // Set New Relic page view name
+        if (window.newrelic) {
+            window.newrelic.setPageViewName('published-tutorials');
+            window.newrelic.addPageAction('page_loaded', {
+                component: 'Published',
+                timestamp: new Date().toISOString()
+            });
+        }
+        
         getAllPublishedTutorials();
+        
+        return () => {
+            // Clean up or send final metrics when component unmounts
+            if (window.newrelic) {
+                window.newrelic.addPageAction('page_exited', {
+                    component: 'Published',
+                    duration_seconds: (Date.now() - performance.now()) / 1000
+                });
+            }
+        };
     }, []);
 
     const updatePublished = (tutorial, newStatus) => {
         setProcessing(true);
+        
+        // New Relic custom attribute for action
+        if (window.newrelic) {
+            window.newrelic.addPageAction('update_published_status', {
+                tutorial_id: tutorial.id,
+                tutorial_title: tutorial.title,
+                new_status: newStatus ? 'published' : 'unpublished',
+                timestamp: new Date().toISOString()
+            });
+            
+            // Start a custom trace segment
+            const actionTrace = window.newrelic.interaction();
+            actionTrace.setName('unpublish-tutorial-action');
+            actionTrace.setAttribute('tutorial_id', tutorial.id);
+        }
         
         const data = {
             ...tutorial,
             published: newStatus
         };
     
+        const startTime = performance.now();
+        
         TutorialDataService.update(tutorial.id, data)
             .then(() => {
+                const endTime = performance.now();
+                
+                if (window.newrelic) {
+                    window.newrelic.addToTrace({
+                        name: 'tutorial_status_update',
+                        type: 'tutorial',
+                        start: startTime,
+                        end: endTime,
+                        metric: 'api.tutorial.update.duration',
+                        statusCode: 200,
+                        tutorial_id: tutorial.id
+                    });
+                }
+                
                 toast.current.show({
                     severity: 'success',
                     summary: 'Success',
@@ -43,6 +93,26 @@ const Published = () => {
                 setProcessing(false);
             })
             .catch(error => {
+                const endTime = performance.now();
+                
+                if (window.newrelic) {
+                    window.newrelic.addToTrace({
+                        name: 'tutorial_status_update_failed',
+                        type: 'tutorial',
+                        start: startTime,
+                        end: endTime,
+                        metric: 'api.tutorial.update.failed',
+                        statusCode: error.response?.status || 500,
+                        tutorial_id: tutorial.id,
+                        error_message: error.message
+                    });
+                    
+                    window.newrelic.noticeError(error, {
+                        action: 'update_published_status',
+                        tutorial_id: tutorial.id
+                    });
+                }
+                
                 console.error("Error updating status:", error);
                 toast.current.show({
                     severity: 'error',
@@ -56,6 +126,17 @@ const Published = () => {
 
     const getAllPublishedTutorials = async () => {
         setLoading(true);
+        
+        // Start a New Relic custom trace segment
+        let actionTrace;
+        if (window.newrelic) {
+            actionTrace = window.newrelic.interaction();
+            actionTrace.setName('load-published-tutorials');
+            actionTrace.setAttribute('component', 'Published');
+        }
+        
+        const startTime = performance.now();
+        
         try {
             const response = await TutorialDataService.findAllPublished();
             
@@ -67,7 +148,57 @@ const Published = () => {
             
             setTutorials(fullMappedData);
             setLoading(false);
+            
+            const endTime = performance.now();
+            
+            if (window.newrelic) {
+                window.newrelic.addToTrace({
+                    name: 'published_tutorials_loaded',
+                    type: 'data_fetch',
+                    start: startTime,
+                    end: endTime,
+                    metric: 'api.tutorials.published.duration',
+                    statusCode: 200,
+                    tutorials_count: fullMappedData.length
+                });
+                
+                // Add custom attributes about the data loaded
+                window.newrelic.setCustomAttribute('published_tutorials_count', fullMappedData.length);
+                
+                // Complete the interaction
+                if (actionTrace) {
+                    actionTrace.setAttribute('duration_ms', endTime - startTime);
+                    actionTrace.setAttribute('tutorials_count', fullMappedData.length);
+                    actionTrace.save();
+                }
+            }
         } catch (error) {
+            const endTime = performance.now();
+            
+            if (window.newrelic) {
+                window.newrelic.addToTrace({
+                    name: 'published_tutorials_load_failed',
+                    type: 'data_fetch',
+                    start: startTime,
+                    end: endTime,
+                    metric: 'api.tutorials.published.failed',
+                    statusCode: error.response?.status || 500,
+                    error_message: error.message
+                });
+                
+                window.newrelic.noticeError(error, {
+                    component: 'Published',
+                    action: 'getAllPublishedTutorials'
+                });
+                
+                // Complete the interaction
+                if (actionTrace) {
+                    actionTrace.setAttribute('error', error.message);
+                    actionTrace.setAttribute('duration_ms', endTime - startTime);
+                    actionTrace.save();
+                }
+            }
+            
             console.error("Error loading published tutorials:", error);
             toast.current.show({
                 severity: 'error',
@@ -80,14 +211,36 @@ const Published = () => {
     };
 
     const handleEditTutorial = (tutorial) => {
+        if (window.newrelic) {
+            window.newrelic.addPageAction('edit_tutorial_click', {
+                tutorial_id: tutorial.id,
+                tutorial_title: tutorial.title,
+                timestamp: new Date().toISOString()
+            });
+        }
+        
         navigate(`/tutorials/${tutorial.id}`);
     };
 
     const handleUnpublish = (tutorial) => {
+        if (window.newrelic) {
+            window.newrelic.addPageAction('unpublish_tutorial_click', {
+                tutorial_id: tutorial.id,
+                tutorial_title: tutorial.title,
+                timestamp: new Date().toISOString()
+            });
+        }
+        
         updatePublished(tutorial, false);
     };
 
     const handleNewTutorial = () => {
+        if (window.newrelic) {
+            window.newrelic.addPageAction('add_new_tutorial_click', {
+                timestamp: new Date().toISOString()
+            });
+        }
+        
         navigate('/add');
     };
 
@@ -195,6 +348,22 @@ const Published = () => {
                     className="p-datatable-sm"
                     responsiveLayout="scroll"
                     stripedRows
+                    onPage={(e) => {
+                        if (window.newrelic) {
+                            window.newrelic.addPageAction('datatable_page_change', {
+                                page: e.page + 1,
+                                rows: e.rows
+                            });
+                        }
+                    }}
+                    onSort={(e) => {
+                        if (window.newrelic) {
+                            window.newrelic.addPageAction('datatable_sort', {
+                                field: e.sortField,
+                                order: e.sortOrder === 1 ? 'ascending' : 'descending'
+                            });
+                        }
+                    }}
                 >
                     <Column field="title" header="Title" body={titleTemplate} sortable style={{ minWidth: '16rem' }} />
                     <Column header="Category" body={categoryTemplate} sortable field="category" style={{ minWidth: '10rem' }} />

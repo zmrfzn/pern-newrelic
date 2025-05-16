@@ -39,14 +39,90 @@ const AddTutorial = () => {
   ];
 
   useEffect(() => {
+    // Set New Relic page view name
+    if (window.newrelic) {
+      window.newrelic.setPageViewName('add-tutorial');
+      window.newrelic.addPageAction('page_loaded', {
+        component: 'AddTutorial',
+        timestamp: new Date().toISOString()
+      });
+    }
+    
     loadCategories();
+    
+    return () => {
+      // Clean up or send final metrics when component unmounts
+      if (window.newrelic) {
+        window.newrelic.addPageAction('page_exited', {
+          component: 'AddTutorial',
+          duration_seconds: (Date.now() - performance.now()) / 1000
+        });
+      }
+    };
   }, []);
 
   const loadCategories = async () => {
+    // Start a New Relic custom trace segment
+    let actionTrace;
+    if (window.newrelic) {
+      actionTrace = window.newrelic.interaction();
+      actionTrace.setName('load-categories');
+      actionTrace.setAttribute('component', 'AddTutorial');
+    }
+    
+    const startTime = performance.now();
+    
     try {
       const response = await TutorialDataService.getCategories();
       setCategories(response);
+      
+      const endTime = performance.now();
+      
+      if (window.newrelic) {
+        window.newrelic.addToTrace({
+          name: 'categories_loaded',
+          type: 'data_fetch',
+          start: startTime,
+          end: endTime,
+          metric: 'api.categories.duration',
+          statusCode: 200,
+          categories_count: response.length
+        });
+        
+        // Complete the interaction
+        if (actionTrace) {
+          actionTrace.setAttribute('duration_ms', endTime - startTime);
+          actionTrace.setAttribute('categories_count', response.length);
+          actionTrace.save();
+        }
+      }
     } catch (error) {
+      const endTime = performance.now();
+      
+      if (window.newrelic) {
+        window.newrelic.addToTrace({
+          name: 'categories_load_failed',
+          type: 'data_fetch',
+          start: startTime,
+          end: endTime,
+          metric: 'api.categories.failed',
+          statusCode: error.response?.status || 500,
+          error_message: error.message
+        });
+        
+        window.newrelic.noticeError(error, {
+          component: 'AddTutorial',
+          action: 'loadCategories'
+        });
+        
+        // Complete the interaction
+        if (actionTrace) {
+          actionTrace.setAttribute('error', error.message);
+          actionTrace.setAttribute('duration_ms', endTime - startTime);
+          actionTrace.save();
+        }
+      }
+      
       console.error("Error loading categories:", error);
       toast.current.show({
         severity: 'error',
@@ -60,27 +136,76 @@ const AddTutorial = () => {
   const handleInputChange = (event) => {
     const { name, value } = event.target;
     setTutorial({ ...tutorial, [name]: value });
+    
+    // Track significant field changes
+    if (name === 'title' || name === 'description') {
+      if (window.newrelic && value.length > 0) {
+        window.newrelic.addPageAction('field_updated', {
+          field_name: name,
+          character_count: value.length,
+          timestamp: new Date().toISOString()
+        });
+      }
+    }
   };
 
   const handleNumberChange = (name, value) => {
     setTutorial({ ...tutorial, [name]: value });
+    
+    if (window.newrelic) {
+      window.newrelic.addPageAction('field_updated', {
+        field_name: name,
+        value: value,
+        timestamp: new Date().toISOString()
+      });
+    }
   };
 
   const onCategoryChange = (event) => {
     setSelectedCategory(event.value);
     setTutorial({...tutorial, 'category': event.value.id});
+    
+    if (window.newrelic) {
+      window.newrelic.addPageAction('category_selected', {
+        category_id: event.value.id,
+        category_name: event.value.category,
+        timestamp: new Date().toISOString()
+      });
+    }
   };
   
   const onDifficultyChange = (event) => {
     setTutorial({...tutorial, 'difficulty': event.value});
+    
+    if (window.newrelic) {
+      window.newrelic.addPageAction('difficulty_selected', {
+        difficulty: event.value,
+        timestamp: new Date().toISOString()
+      });
+    }
   };
   
   const onTagsChange = (tags) => {
     setTagArray(tags);
     setTutorial({...tutorial, 'tags': tags.join(',')});
+    
+    if (window.newrelic) {
+      window.newrelic.addPageAction('tags_updated', {
+        tags_count: tags.length,
+        tags: tags.join(','),
+        timestamp: new Date().toISOString()
+      });
+    }
   };
 
   const handleCancel = () => {
+    if (window.newrelic) {
+      window.newrelic.addPageAction('cancel_tutorial_creation', {
+        data_entered: Object.values(tutorial).some(value => value !== initialTutorialState[value]),
+        timestamp: new Date().toISOString()
+      });
+    }
+    
     navigate("/tutorials");
   };
 
@@ -92,10 +217,36 @@ const AddTutorial = () => {
         detail: 'Title is required',
         life: 3000
       });
+      
+      if (window.newrelic) {
+        window.newrelic.addPageAction('validation_error', {
+          field: 'title',
+          error: 'required',
+          timestamp: new Date().toISOString()
+        });
+      }
+      
       return;
     }
     
     setProcessing(true);
+    
+    // Start a New Relic custom trace segment
+    let actionTrace;
+    if (window.newrelic) {
+      actionTrace = window.newrelic.interaction();
+      actionTrace.setName('create-tutorial');
+      actionTrace.setAttribute('tutorial_title', tutorial.title);
+      
+      window.newrelic.addPageAction('tutorial_create_started', {
+        tutorial_title: tutorial.title,
+        category_id: tutorial.category,
+        difficulty: tutorial.difficulty,
+        has_image: !!tutorial.imageUrl,
+        tags_count: tagArray.length,
+        timestamp: new Date().toISOString()
+      });
+    }
     
     const data = {
       title: tutorial.title,
@@ -109,8 +260,39 @@ const AddTutorial = () => {
       published: false
     };
     
+    const startTime = performance.now();
+    
     TutorialDataService.create(data)
       .then((response) => {
+        const endTime = performance.now();
+        
+        if (window.newrelic) {
+          window.newrelic.addToTrace({
+            name: 'tutorial_created',
+            type: 'tutorial',
+            start: startTime,
+            end: endTime,
+            metric: 'api.tutorial.create.duration',
+            statusCode: 201,
+            tutorial_id: response.data.id
+          });
+          
+          window.newrelic.addPageAction('tutorial_created', {
+            tutorial_id: response.data.id,
+            tutorial_title: tutorial.title,
+            processing_time_ms: endTime - startTime,
+            timestamp: new Date().toISOString()
+          });
+          
+          // Complete the interaction
+          if (actionTrace) {
+            actionTrace.setAttribute('duration_ms', endTime - startTime);
+            actionTrace.setAttribute('tutorial_id', response.data.id);
+            actionTrace.setAttribute('success', true);
+            actionTrace.save();
+          }
+        }
+        
         toast.current.show({
           severity: 'success',
           summary: 'Success',
@@ -122,6 +304,39 @@ const AddTutorial = () => {
         navigate(`/tutorials/${response.data.id}`);
       })
       .catch((error) => {
+        const endTime = performance.now();
+        
+        if (window.newrelic) {
+          window.newrelic.addToTrace({
+            name: 'tutorial_creation_failed',
+            type: 'tutorial',
+            start: startTime,
+            end: endTime,
+            metric: 'api.tutorial.create.failed',
+            statusCode: error.response?.status || 500,
+            error_message: error.message
+          });
+          
+          window.newrelic.noticeError(error, {
+            action: 'create_tutorial',
+            tutorial_title: tutorial.title
+          });
+          
+          window.newrelic.addPageAction('tutorial_creation_failed', {
+            tutorial_title: tutorial.title,
+            error: error.message,
+            timestamp: new Date().toISOString()
+          });
+          
+          // Complete the interaction
+          if (actionTrace) {
+            actionTrace.setAttribute('error', error.message);
+            actionTrace.setAttribute('duration_ms', endTime - startTime);
+            actionTrace.setAttribute('success', false);
+            actionTrace.save();
+          }
+        }
+        
         console.error("Error creating tutorial:", error);
         
         toast.current.show({
