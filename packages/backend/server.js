@@ -41,7 +41,7 @@ app.get("/", (req, res) => {
   res.json({ message: "Welcome to tutorial application." });
 });
 
-require("./app/routes/turorial.routes")(app);
+require("./app/routes/tutorial.routes")(app);
 const weather = require("./app/routes/weather.routes");
 app.use("/api/weather",weather);
 
