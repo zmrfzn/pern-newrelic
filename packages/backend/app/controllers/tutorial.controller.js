@@ -1,5 +1,6 @@
 const db = require("../../database");
 const logger = require("./../logger");
+const { validate: uuidValidate } = require('uuid');
 
 const Tutorial = db.tutorials;
 
@@ -79,6 +80,14 @@ exports.findAll = (req, res) => {
 
 // Find a single Tutorial with an id
 exports.findOne = (req, res) => {
+
+  // handle if not valid uuid or integer; add logger
+  logger.info(`${req.method} ${req.originalUrl} : Fetching tutorial with id ${req.params.id}`);
+  if (!req.params.id || !uuidValidate(req.params.id)) {
+    logger.error(`${req.method} ${req.originalUrl} : Invalid tutorial id ${req.params.id}`);
+    return res.status(400).send({ message: "Invalid tutorial id " + req.params.id });
+  }
+
   const id = req.params.id;
 
   Tutorial.findByPk(id)
@@ -86,7 +95,7 @@ exports.findOne = (req, res) => {
       if (!data) {
         logger.info(`${req.method} ${req.originalUrl} : Fetched ${data.length} records with ${id}`);
 
-        res.status(404).send({ message: "Not found Tutorial with id " + id });
+        res.status(404).send({ message: "Tutorial not found with id " + id });
       }
       else {
         logger.info(`${req.method} ${req.originalUrl} : Fetched ${data.length} records with ${id}`);
