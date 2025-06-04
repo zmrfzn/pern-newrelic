@@ -20,6 +20,7 @@ const Published = () => {
     const [processing, setProcessing] = useState(false);
 
     useEffect(() => {
+        /* Commenting out page actions
         // Set New Relic page view name
         if (window.newrelic) {
             window.newrelic.setPageViewName('published-tutorials');
@@ -28,10 +29,12 @@ const Published = () => {
                 timestamp: new Date().toISOString()
             });
         }
+        */
         
         getAllPublishedTutorials();
         
         return () => {
+            /* Commenting out page actions
             // Clean up or send final metrics when component unmounts
             if (window.newrelic) {
                 window.newrelic.addPageAction('page_exited', {
@@ -39,12 +42,14 @@ const Published = () => {
                     duration_seconds: (Date.now() - performance.now()) / 1000
                 });
             }
+            */
         };
     }, []);
 
     const updatePublished = (tutorial, newStatus) => {
         setProcessing(true);
         
+        /* Commenting out action trace
         // New Relic custom attribute for action
         if (window.newrelic) {
             window.newrelic.addPageAction('update_published_status', {
@@ -59,18 +64,20 @@ const Published = () => {
             actionTrace.setName('unpublish-tutorial-action');
             actionTrace.setAttribute('tutorial_id', tutorial.id);
         }
+        */
         
         const data = {
             ...tutorial,
             published: newStatus
         };
     
-        const startTime = performance.now();
+        // const startTime = performance.now();
         
         TutorialDataService.update(tutorial.id, data)
             .then(() => {
-                const endTime = performance.now();
+                // const endTime = performance.now();
                 
+                /* Commenting out custom spans
                 if (window.newrelic) {
                     window.newrelic.addToTrace({
                         name: 'tutorial_status_update',
@@ -82,6 +89,7 @@ const Published = () => {
                         tutorial_id: tutorial.id
                     });
                 }
+                */
                 
                 toast.current.show({
                     severity: 'success',
@@ -93,8 +101,9 @@ const Published = () => {
                 setProcessing(false);
             })
             .catch(error => {
-                const endTime = performance.now();
+                // const endTime = performance.now();
                 
+                /* Commenting out error tracking
                 if (window.newrelic) {
                     window.newrelic.addToTrace({
                         name: 'tutorial_status_update_failed',
@@ -112,6 +121,7 @@ const Published = () => {
                         tutorial_id: tutorial.id
                     });
                 }
+                */
                 
                 console.error("Error updating status:", error);
                 toast.current.show({
@@ -127,6 +137,7 @@ const Published = () => {
     const getAllPublishedTutorials = async () => {
         setLoading(true);
         
+        /* Commenting out action trace
         // Start a New Relic custom trace segment
         let actionTrace;
         if (window.newrelic) {
@@ -136,6 +147,7 @@ const Published = () => {
         }
         
         const startTime = performance.now();
+        */
         
         try {
             const response = await TutorialDataService.findAllPublished();
@@ -149,6 +161,7 @@ const Published = () => {
             setTutorials(fullMappedData);
             setLoading(false);
             
+            /* Commenting out custom spans
             const endTime = performance.now();
             
             if (window.newrelic) {
@@ -172,7 +185,9 @@ const Published = () => {
                     actionTrace.save();
                 }
             }
+            */
         } catch (error) {
+            /* Commenting out error tracking
             const endTime = performance.now();
             
             if (window.newrelic) {
@@ -198,6 +213,7 @@ const Published = () => {
                     actionTrace.save();
                 }
             }
+            */
             
             console.error("Error loading published tutorials:", error);
             toast.current.show({
@@ -211,6 +227,7 @@ const Published = () => {
     };
 
     const handleEditTutorial = (tutorial) => {
+        /* Commenting out page actions
         if (window.newrelic) {
             window.newrelic.addPageAction('edit_tutorial_click', {
                 tutorial_id: tutorial.id,
@@ -218,11 +235,13 @@ const Published = () => {
                 timestamp: new Date().toISOString()
             });
         }
+        */
         
         navigate(`/tutorials/${tutorial.id}`);
     };
 
     const handleUnpublish = (tutorial) => {
+        /* Commenting out page actions
         if (window.newrelic) {
             window.newrelic.addPageAction('unpublish_tutorial_click', {
                 tutorial_id: tutorial.id,
@@ -230,16 +249,19 @@ const Published = () => {
                 timestamp: new Date().toISOString()
             });
         }
+        */
         
         updatePublished(tutorial, false);
     };
 
     const handleNewTutorial = () => {
+        /* Commenting out page actions
         if (window.newrelic) {
             window.newrelic.addPageAction('add_new_tutorial_click', {
                 timestamp: new Date().toISOString()
             });
         }
+        */
         
         navigate('/add');
     };

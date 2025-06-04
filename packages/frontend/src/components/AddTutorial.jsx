@@ -39,6 +39,7 @@ const AddTutorial = () => {
   ];
 
   useEffect(() => {
+    
     // Set New Relic page view name
     if (window.newrelic) {
       window.newrelic.setPageViewName('add-tutorial');
@@ -51,6 +52,7 @@ const AddTutorial = () => {
     loadCategories();
     
     return () => {
+      /* Commenting out page actions
       // Clean up or send final metrics when component unmounts
       if (window.newrelic) {
         window.newrelic.addPageAction('page_exited', {
@@ -58,10 +60,12 @@ const AddTutorial = () => {
           duration_seconds: (Date.now() - performance.now()) / 1000
         });
       }
+      */
     };
   }, []);
 
   const loadCategories = async () => {
+    /* Commenting out action trace
     // Start a New Relic custom trace segment
     let actionTrace;
     if (window.newrelic) {
@@ -69,15 +73,13 @@ const AddTutorial = () => {
       actionTrace.setName('load-categories');
       actionTrace.setAttribute('component', 'AddTutorial');
     }
-    
-    const startTime = performance.now();
+    */
     
     try {
       const response = await TutorialDataService.getCategories();
       setCategories(response);
       
-      const endTime = performance.now();
-      
+      /* Commenting out custom spans and traces
       if (window.newrelic) {
         window.newrelic.addToTrace({
           name: 'categories_loaded',
@@ -96,9 +98,9 @@ const AddTutorial = () => {
           actionTrace.save();
         }
       }
+      */
     } catch (error) {
-      const endTime = performance.now();
-      
+      /* Commenting out error tracking
       if (window.newrelic) {
         window.newrelic.addToTrace({
           name: 'categories_load_failed',
@@ -122,6 +124,7 @@ const AddTutorial = () => {
           actionTrace.save();
         }
       }
+      */
       
       console.error("Error loading categories:", error);
       toast.current.show({
@@ -137,6 +140,7 @@ const AddTutorial = () => {
     const { name, value } = event.target;
     setTutorial({ ...tutorial, [name]: value });
     
+    /* Commenting out page actions
     // Track significant field changes
     if (name === 'title' || name === 'description') {
       if (window.newrelic && value.length > 0) {
@@ -147,11 +151,13 @@ const AddTutorial = () => {
         });
       }
     }
+    */
   };
 
   const handleNumberChange = (name, value) => {
     setTutorial({ ...tutorial, [name]: value });
     
+    /* Commenting out page actions
     if (window.newrelic) {
       window.newrelic.addPageAction('field_updated', {
         field_name: name,
@@ -159,12 +165,14 @@ const AddTutorial = () => {
         timestamp: new Date().toISOString()
       });
     }
+    */
   };
 
   const onCategoryChange = (event) => {
     setSelectedCategory(event.value);
     setTutorial({...tutorial, 'category': event.value.id});
     
+    /* Commenting out page actions
     if (window.newrelic) {
       window.newrelic.addPageAction('category_selected', {
         category_id: event.value.id,
@@ -172,23 +180,27 @@ const AddTutorial = () => {
         timestamp: new Date().toISOString()
       });
     }
+    */
   };
   
   const onDifficultyChange = (event) => {
     setTutorial({...tutorial, 'difficulty': event.value});
     
+    /* Commenting out page actions
     if (window.newrelic) {
       window.newrelic.addPageAction('difficulty_selected', {
         difficulty: event.value,
         timestamp: new Date().toISOString()
       });
     }
+    */
   };
   
   const onTagsChange = (tags) => {
     setTagArray(tags);
     setTutorial({...tutorial, 'tags': tags.join(',')});
     
+    /* Commenting out page actions
     if (window.newrelic) {
       window.newrelic.addPageAction('tags_updated', {
         tags_count: tags.length,
@@ -196,15 +208,18 @@ const AddTutorial = () => {
         timestamp: new Date().toISOString()
       });
     }
+    */
   };
 
   const handleCancel = () => {
+    /* Commenting out page actions
     if (window.newrelic) {
       window.newrelic.addPageAction('cancel_tutorial_creation', {
         data_entered: Object.values(tutorial).some(value => value !== initialTutorialState[value]),
         timestamp: new Date().toISOString()
       });
     }
+    */
     
     navigate("/tutorials");
   };
@@ -218,6 +233,7 @@ const AddTutorial = () => {
         life: 3000
       });
       
+      /* Commenting out page actions
       if (window.newrelic) {
         window.newrelic.addPageAction('validation_error', {
           field: 'title',
@@ -225,13 +241,14 @@ const AddTutorial = () => {
           timestamp: new Date().toISOString()
         });
       }
+      */
       
       return;
     }
     
     setProcessing(true);
     
-    // Start a New Relic custom trace segment
+    // Start a New Relic custom trace segment for tutorial creation
     let actionTrace;
     if (window.newrelic) {
       actionTrace = window.newrelic.interaction();
