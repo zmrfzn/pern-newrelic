@@ -67,13 +67,15 @@ const Tutorial = () => {
       setLoading(false);
     }
     
+    const startTime = performance.now();
     return () => {
       // Clean up or send final metrics when component unmounts
       if (window.newrelic) {
+        const endTime = performance.now();
         window.newrelic.addPageAction('page_exited', {
           component: 'Tutorial',
           tutorial_id: id,
-          duration_seconds: (Date.now() - performance.now()) / 1000,
+          duration_seconds: (endTime - startTime) / 1000,
           was_modified: dirty
         });
       }
