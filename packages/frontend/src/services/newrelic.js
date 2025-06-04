@@ -11,7 +11,6 @@ export const trackPageAccess = (pageName, additionalData = {}) => {
   newrelic.setCustomAttribute('userAgent_custom', navigator.userAgent);
   newrelic.setCustomAttribute('screenResolution_custom', `${window.screen.width}x${window.screen.height}`);
 
-  debugger;
   // Record custom event for page access
   newrelic.recordCustomEvent('PageAccessEvent_custom', {
     pageName,
