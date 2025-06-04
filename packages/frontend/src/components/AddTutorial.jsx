@@ -249,7 +249,8 @@ const AddTutorial = () => {
     setProcessing(true);
     
     // Start a New Relic custom trace segment for tutorial creation
-    let actionTrace;
+    // uncomment this for custom instrumentation
+    /* let actionTrace;
     if (window.newrelic) {
       actionTrace = window.newrelic.interaction();
       actionTrace.setName('create-tutorial');
@@ -263,7 +264,7 @@ const AddTutorial = () => {
         tags_count: tagArray.length,
         timestamp: new Date().toISOString()
       });
-    }
+    } */ // uncomment this for custom instrumentation
     
     const data = {
       title: tutorial.title,
@@ -282,7 +283,8 @@ const AddTutorial = () => {
     TutorialDataService.create(data)
       .then((response) => {
         const endTime = performance.now();
-        
+        // uncomment this for custom instrumentation
+        /*
         if (window.newrelic) {
           window.newrelic.addToTrace({
             name: 'tutorial_created_custom',
@@ -308,7 +310,7 @@ const AddTutorial = () => {
             actionTrace.setAttribute('success_custom', true);
             actionTrace.save();
           }
-        }
+        } */ // uncomment this for custom instrumentation
         
         toast.current.show({
           severity: 'success',
@@ -322,7 +324,8 @@ const AddTutorial = () => {
       })
       .catch((error) => {
         const endTime = performance.now();
-        
+        // uncomment this for custom instrumentation
+        /*
         if (window.newrelic) {
           window.newrelic.addToTrace({
             name: 'tutorial_creation_failed_custom',
@@ -352,7 +355,7 @@ const AddTutorial = () => {
             actionTrace.setAttribute('success', false);
             actionTrace.save();
           }
-        }
+        } */ // uncomment this for custom instrumentation
         
         console.error("Error creating tutorial:", error);
         

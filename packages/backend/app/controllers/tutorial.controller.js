@@ -1,19 +1,24 @@
 const db = require("../../database");
 const logger = require("./../logger");
 const { validate: uuidValidate } = require('uuid');
-const newrelic = require('newrelic');
+
+// uncomment this for custom instrumentation
+//const newrelic = require('newrelic');
 
 const Tutorial = db.tutorials;
 
 // Create and Save a new Tutorial
 exports.create = (req, res) => {
   // Start a custom segment for tutorial creation
-  newrelic.startSegment('createTutorial_custom', true, () => {
+  // uncomment this for custom instrumentation
+  /* newrelic.startSegment('createTutorial_custom', true, () => { */
     // Validate request
     if (!req.body.title) {
-      newrelic.noticeError(new Error('Missing title in tutorial creation'), {
+      
+      // uncomment this for custom instrumentation
+     /* newrelic.noticeError(new Error('Missing title in tutorial creation'), {
         requestBody: req.body
-      });
+      }); */
       res.status(400).send({ message: "Content can not be empty!" });
       return;
     }
@@ -34,8 +39,9 @@ exports.create = (req, res) => {
     };
 
     // Add custom attributes for the tutorial creation
-    newrelic.addCustomAttribute('tutorialCategory_custom', tutorial.category);
-    newrelic.addCustomAttribute('tutorialDifficulty_custom', tutorial.difficulty);
+    // uncomment this for custom instrumentation
+    /* newrelic.addCustomAttribute('tutorialCategory_custom', tutorial.category);
+    newrelic.addCustomAttribute('tutorialDifficulty_custom', tutorial.difficulty); */
 
     // Save Tutorial in the database
     Tutorial.create(tutorial)
@@ -50,11 +56,12 @@ exports.create = (req, res) => {
         res.send(data);
       })
       .catch((err) => {
+        // uncomment this for custom instrumentation
         // Enhanced error handling with New Relic
-        newrelic.noticeError(err, {
+        /* newrelic.noticeError(err, {
           tutorialData: tutorial,
           errorLocation: 'tutorial.create_custom'
-        });
+        }); */
 
         logger.error(
           `${req.method} ${req.originalUrl}- ${JSON.stringify(
@@ -67,7 +74,7 @@ exports.create = (req, res) => {
             err.message || "Some error occurred while creating the Tutorial.",
         });
       });
-  });
+  //}); // uncomment this for custom instrumentation
 };
 
 // Retrieve all Tutorials from the database.
@@ -234,8 +241,10 @@ exports.delete = (req, res) => {
 // Delete all Tutorials from the database.
 exports.deleteAll = (req, res) => {
   /* Commenting out delete all instrumentation */
+
+  // uncomment this for custom instrumentation
   // Start a custom segment for bulk delete operation
-  newrelic.startSegment('deleteAllTutorials_custom', true, () => {
+/*  newrelic.startSegment('deleteAllTutorials_custom', true, () => {
     // Add custom attributes for the delete operation
     newrelic.addCustomAttribute('operation_custom', 'bulkDelete');
     newrelic.addCustomAttribute('requestPath_custom', req.path);
@@ -259,8 +268,9 @@ exports.deleteAll = (req, res) => {
       requestPath: req.path,
       timestamp: new Date().toISOString()
     });
-  
-  });
+  */
+ 
+
     logger.error(
       `${req.method} ${req.originalUrl}- ${JSON.stringify(req.params)} - ${
         err.message
@@ -274,6 +284,8 @@ exports.deleteAll = (req, res) => {
       message: err.message || "Some error occurred while removing all tutorials.",
     });
     return;
+ 
+    // });  // uncomment this for custom instrumentation
  
     // The code below is unreachable but kept for reference
     Tutorial.destroy({
