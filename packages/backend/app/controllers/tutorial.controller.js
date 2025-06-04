@@ -233,7 +233,7 @@ exports.delete = (req, res) => {
 
 // Delete all Tutorials from the database.
 exports.deleteAll = (req, res) => {
-  /* Commenting out delete all instrumentation
+  /* Commenting out delete all instrumentation */
   // Start a custom segment for bulk delete operation
   newrelic.startSegment('deleteAllTutorials_custom', true, () => {
     // Add custom attributes for the delete operation
@@ -259,9 +259,8 @@ exports.deleteAll = (req, res) => {
       requestPath: req.path,
       timestamp: new Date().toISOString()
     });
-  */
-    const err = new Error(`Failed to Delete the tutorials`);
-    
+  
+  });
     logger.error(
       `${req.method} ${req.originalUrl}- ${JSON.stringify(req.params)} - ${
         err.message
@@ -275,7 +274,7 @@ exports.deleteAll = (req, res) => {
       message: err.message || "Some error occurred while removing all tutorials.",
     });
     return;
-
+ 
     // The code below is unreachable but kept for reference
     Tutorial.destroy({
       truncate: true,

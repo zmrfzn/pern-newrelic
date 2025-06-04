@@ -253,9 +253,9 @@ const AddTutorial = () => {
     if (window.newrelic) {
       actionTrace = window.newrelic.interaction();
       actionTrace.setName('create-tutorial');
-      actionTrace.setAttribute('tutorial_title', tutorial.title);
+      actionTrace.setAttribute('tutorial_title_custom', tutorial.title);
       
-      window.newrelic.addPageAction('tutorial_create_started', {
+      window.newrelic.addPageAction('tutorial_create_started_custom', {
         tutorial_title: tutorial.title,
         category_id: tutorial.category,
         difficulty: tutorial.difficulty,
@@ -285,7 +285,7 @@ const AddTutorial = () => {
         
         if (window.newrelic) {
           window.newrelic.addToTrace({
-            name: 'tutorial_created',
+            name: 'tutorial_created_custom',
             type: 'tutorial',
             start: startTime,
             end: endTime,
@@ -294,7 +294,7 @@ const AddTutorial = () => {
             tutorial_id: response.data.id
           });
           
-          window.newrelic.addPageAction('tutorial_created', {
+          window.newrelic.addPageAction('tutorial_created_custom', {
             tutorial_id: response.data.id,
             tutorial_title: tutorial.title,
             processing_time_ms: endTime - startTime,
@@ -303,9 +303,9 @@ const AddTutorial = () => {
           
           // Complete the interaction
           if (actionTrace) {
-            actionTrace.setAttribute('duration_ms', endTime - startTime);
-            actionTrace.setAttribute('tutorial_id', response.data.id);
-            actionTrace.setAttribute('success', true);
+            actionTrace.setAttribute('duration_ms_custom', endTime - startTime);
+            actionTrace.setAttribute('tutorial_id_custom', response.data.id);
+            actionTrace.setAttribute('success_custom', true);
             actionTrace.save();
           }
         }
@@ -325,7 +325,7 @@ const AddTutorial = () => {
         
         if (window.newrelic) {
           window.newrelic.addToTrace({
-            name: 'tutorial_creation_failed',
+            name: 'tutorial_creation_failed_custom',
             type: 'tutorial',
             start: startTime,
             end: endTime,
@@ -335,11 +335,11 @@ const AddTutorial = () => {
           });
           
           window.newrelic.noticeError(error, {
-            action: 'create_tutorial',
+            action: 'create_tutorial_custom',
             tutorial_title: tutorial.title
           });
           
-          window.newrelic.addPageAction('tutorial_creation_failed', {
+          window.newrelic.addPageAction('tutorial_creation_failed_custom', {
             tutorial_title: tutorial.title,
             error: error.message,
             timestamp: new Date().toISOString()
