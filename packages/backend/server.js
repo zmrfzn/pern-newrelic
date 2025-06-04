@@ -45,6 +45,21 @@ require("./app/routes/tutorial.routes")(app);
 const weather = require("./app/routes/weather.routes");
 app.use("/api/weather",weather);
 
+// Handle 404 - Route Not Found
+app.use((req, res, next) => {
+  /* Commenting out 404 tracking
+  // custom event for 404
+  newrelic.recordCustomEvent('RouteNotFound_custom', {
+    path: req.originalUrl,
+    timestamp: new Date().toISOString()
+  });
+  */
+  
+  res.status(404).json({
+    message: "Route not found",
+    path: req.originalUrl
+  });
+});
 
 // set port, listen for requests
 const PORT = process.env.PORT || 8080;

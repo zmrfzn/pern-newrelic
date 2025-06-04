@@ -1,56 +1,73 @@
 const db = require("../../database");
 const logger = require("./../logger");
+const { validate: uuidValidate } = require('uuid');
+const newrelic = require('newrelic');
 
 const Tutorial = db.tutorials;
 
 // Create and Save a new Tutorial
 exports.create = (req, res) => {
-  // Validate request
-  if (!req.body.title) {
-    res.status(400).send({ message: "Content can not be empty!" });
-    return;
-  }
-
-  // Create a Tutorial
-  const tutorial = {
-    title: req.body.title,
-    description: req.body.description,
-    category: req.body.category,
-    published: req.body.published ? req.body.published : false,
-    author: req.body.author || "",
-    readTime: req.body.readTime,
-    difficulty: req.body.difficulty,
-    tags: req.body.tags,
-    imageUrl: req.body.imageUrl,
-    viewCount: 0,
-    likes: 0
-  };
-
-  // Save Tutorial in the database
-  Tutorial.create(tutorial)
-    .then((data) => {
-      logger.info(`Added ${data.length} records`);
-      logger.info(
-        `${req.method} ${req.originalUrl}- ${JSON.stringify(
-          req.params
-        )} - Request Successful!!`
-      );
-
-
-      res.send(data);
-    })
-    .catch((err) => {
-      logger.error(
-        `${req.method} ${req.originalUrl}- ${JSON.stringify(
-          req.params
-        )} - Error fetching data`
-      );
-
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while creating the Tutorial.",
+  // Start a custom segment for tutorial creation
+  newrelic.startSegment('createTutorial_custom', true, () => {
+    // Validate request
+    if (!req.body.title) {
+      newrelic.noticeError(new Error('Missing title in tutorial creation'), {
+        requestBody: req.body
       });
-    });
+      res.status(400).send({ message: "Content can not be empty!" });
+      return;
+    }
+
+    // Create a Tutorial
+    const tutorial = {
+      title: req.body.title,
+      description: req.body.description,
+      category: req.body.category,
+      published: req.body.published ? req.body.published : false,
+      author: req.body.author || "",
+      readTime: req.body.readTime,
+      difficulty: req.body.difficulty,
+      tags: req.body.tags,
+      imageUrl: req.body.imageUrl,
+      viewCount: 0,
+      likes: 0
+    };
+
+    // Add custom attributes for the tutorial creation
+    newrelic.addCustomAttribute('tutorialCategory_custom', tutorial.category);
+    newrelic.addCustomAttribute('tutorialDifficulty_custom', tutorial.difficulty);
+
+    // Save Tutorial in the database
+    Tutorial.create(tutorial)
+      .then((data) => {
+        logger.info(`Added ${data.length} records`);
+        logger.info(
+          `${req.method} ${req.originalUrl}- ${JSON.stringify(
+            req.params
+          )} - Request Successful!!`
+        );
+
+        res.send(data);
+      })
+      .catch((err) => {
+        // Enhanced error handling with New Relic
+        newrelic.noticeError(err, {
+          tutorialData: tutorial,
+          errorLocation: 'tutorial.create_custom'
+        });
+
+        logger.error(
+          `${req.method} ${req.originalUrl}- ${JSON.stringify(
+            req.params
+          )} - Error fetching data`
+        );
+
+        res.status(500).send({
+          message:
+            err.message || "Some error occurred while creating the Tutorial.",
+        });
+      });
+  });
 };
 
 // Retrieve all Tutorials from the database.
@@ -79,6 +96,14 @@ exports.findAll = (req, res) => {
 
 // Find a single Tutorial with an id
 exports.findOne = (req, res) => {
+
+  // handle if not valid uuid or integer; add logger
+  logger.info(`${req.method} ${req.originalUrl} : Fetching tutorial with id ${req.params.id}`);
+  if (!req.params.id || !uuidValidate(req.params.id)) {
+    logger.error(`${req.method} ${req.originalUrl} : Invalid tutorial id ${req.params.id}`);
+    return res.status(400).send({ message: "Invalid tutorial id " + req.params.id });
+  }
+
   const id = req.params.id;
 
   Tutorial.findByPk(id)
@@ -86,7 +111,7 @@ exports.findOne = (req, res) => {
       if (!data) {
         logger.info(`${req.method} ${req.originalUrl} : Fetched ${data.length} records with ${id}`);
 
-        res.status(404).send({ message: "Not found Tutorial with id " + id });
+        res.status(404).send({ message: "Tutorial not found with id " + id });
       }
       else {
         logger.info(`${req.method} ${req.originalUrl} : Fetched ${data.length} records with ${id}`);
@@ -208,46 +233,76 @@ exports.delete = (req, res) => {
 
 // Delete all Tutorials from the database.
 exports.deleteAll = (req, res) => {
-  const err = new Error(`Failed to Delete the tutorials`);
-  logger.error(
-    `${req.method} ${req.originalUrl}- ${JSON.stringify(req.params)} - ${
-      err.message
-    }`
-  );
-  logger.error(
-   `${req.method} ${req.originalUrl} : Bulk delete failed!`,
-  );
-
-  res.status(500).send({
-    message: err.message || "Some error occurred while removing all tutorials.",
-  });
-  return;
-  Tutorial.destroy({
-    truncate: true,
-  })
-    .then((data) => {
-      logger.info(
-        `${req.method} ${req.originalUrl}- ${JSON.stringify(
-          req.params
-        )} - Request Successful!!`
-      );
-
-      res.send({
-        message: `${data.deletedCount} Tutorials were deleted successfully!`,
-      });
-    })
-    .catch((err) => {
-      logger.error(
-        `${req.method} ${req.originalUrl}- ${JSON.stringify(
-          req.params
-        )} - Error updating data`
-      );
-
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while removing all tutorials.",
-      });
+  /* Commenting out delete all instrumentation */
+  // Start a custom segment for bulk delete operation
+  newrelic.startSegment('deleteAllTutorials_custom', true, () => {
+    // Add custom attributes for the delete operation
+    newrelic.addCustomAttribute('operation_custom', 'bulkDelete');
+    newrelic.addCustomAttribute('requestPath_custom', req.path);
+    
+    const err = new Error(`Failed to Delete the tutorials`);
+    // Record custom event for delete attempt
+    newrelic.recordCustomEvent('BulkDeleteAttempt_custom', {
+      path: req.path,
+      url: req.url,
+      method: req.method,
+      timestamp: new Date().toISOString(),
+      error: err.message,
+      errorType: 'deliberate_error_custom',
+      requestPath: req.path,
     });
+
+    // Enhanced error handling with New Relic
+    newrelic.noticeError(err, {
+      operation: 'bulkDelete_custom',
+      errorType: 'deliberate_error_custom',
+      requestPath: req.path,
+      timestamp: new Date().toISOString()
+    });
+  
+  });
+    logger.error(
+      `${req.method} ${req.originalUrl}- ${JSON.stringify(req.params)} - ${
+        err.message
+      }`
+    );
+    logger.error(
+     `${req.method} ${req.originalUrl} : Bulk delete failed!`,
+    );
+
+    res.status(500).send({
+      message: err.message || "Some error occurred while removing all tutorials.",
+    });
+    return;
+ 
+    // The code below is unreachable but kept for reference
+    Tutorial.destroy({
+      truncate: true,
+    })
+      .then((data) => {
+        logger.info(
+          `${req.method} ${req.originalUrl}- ${JSON.stringify(
+            req.params
+          )} - Request Successful!!`
+        );
+
+        res.send({
+          message: `${data.deletedCount} Tutorials were deleted successfully!`,
+        });
+      })
+      .catch((err) => {
+        logger.error(
+          `${req.method} ${req.originalUrl}- ${JSON.stringify(
+            req.params
+          )} - Error updating data`
+        );
+
+        res.status(500).send({
+          message:
+            err.message || "Some error occurred while removing all tutorials.",
+        });
+      });
+  // });
 };
 
 // Find all published Tutorials

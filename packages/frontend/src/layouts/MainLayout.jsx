@@ -4,6 +4,7 @@ import { Button } from 'primereact/button';
 import { useState } from 'react';
 import PropTypes from 'prop-types';
 import viteLogo from '/vite.svg';
+import nrLogo from '/new_relic_logo_horizontal.png';
 
 const MainLayout = ({ children }) => {
   const [visible, setVisible] = useState(false);
@@ -28,7 +29,7 @@ const MainLayout = ({ children }) => {
         />
         
         <a href="/" className="navbar-brand d-flex align-items-center">
-          <img src={viteLogo} alt="Vite logo" height={40} />
+          <img src={nrLogo} alt="Vite logo" height={40} />
           <span className="pl-2">Tutorials Manager</span>
         </a>
         

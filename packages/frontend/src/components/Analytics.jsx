@@ -7,6 +7,15 @@ import { Dropdown } from 'primereact/dropdown';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import TutorialDataService from '../services/TutorialService';
+/* Commenting out analytics instrumentation
+import { 
+  trackTimeRangeChange, 
+  trackCategoryFilter, 
+  trackAnalyticsView, 
+  trackAnalyticsError,
+  trackPageAccess 
+} from '../services/newrelic';
+*/
 
 const Analytics = () => {
   const [loading, setLoading] = useState(true);
@@ -20,6 +29,16 @@ const Analytics = () => {
   const [categoryBreakdown, setCategoryBreakdown] = useState([]);
   const [publishedRatio, setPublishedRatio] = useState({ published: 0, unpublished: 0 });
   const [wordCountStats, setWordCountStats] = useState({ average: 0, max: 0, min: 0 });
+  
+  /* Commenting out page access tracking
+  // Track page access when component mounts
+  useEffect(() => {
+    trackPageAccess('Analytics', {
+      initialTimeRange: timeRangeFilter,
+      initialCategory: categoryFilter?.category || 'All Categories'
+    });
+  }, []); // Empty dependency array means this runs once on mount
+  */
 
   useEffect(() => {
     const fetchData = async () => {
@@ -35,6 +54,9 @@ const Analytics = () => {
         setLoading(false);
       } catch (error) {
         console.error("Error fetching analytics data:", error);
+        /* Commenting out error tracking
+        trackAnalyticsError(error, 'dataFetch');
+        */
         setLoading(false);
       }
     };
@@ -200,6 +222,29 @@ const Analytics = () => {
     );
   };
 
+  const handleTimeRangeChange = (e) => {
+    setTimeRangeFilter(e.value);
+    /* Commenting out time range tracking
+    trackTimeRangeChange(e.value);
+    */
+  };
+
+  const handleCategoryChange = (e) => {
+    setCategoryFilter(e.value);
+    /* Commenting out category filter tracking
+    trackCategoryFilter(e.value);
+    */
+  };
+
+  const handleTabChange = () => {
+    /* Commenting out view change tracking
+    const viewName = e.index === 0 ? 'Timeline Analysis' : 
+                    e.index === 1 ? 'Category Analysis' : 
+                    e.index === 2 ? 'Content Analysis' : 'Unknown';
+    trackAnalyticsView(viewName);
+    */
+  };
+
   return (
     <div className="analytics p-4">
       <h2 className="mb-4">Analytics</h2>
@@ -219,7 +264,7 @@ const Analytics = () => {
                 <Dropdown 
                   value={timeRangeFilter} 
                   options={timeRangeOptions} 
-                  onChange={(e) => setTimeRangeFilter(e.value)}
+                  onChange={handleTimeRangeChange}
                   className="w-100"
                 />
               </div>
@@ -229,7 +274,7 @@ const Analytics = () => {
                 <Dropdown 
                   value={categoryFilter} 
                   options={categories} 
-                  onChange={(e) => setCategoryFilter(e.value)}
+                  onChange={handleCategoryChange}
                   optionLabel="category"
                   placeholder="All Categories"
                   className="w-100"
@@ -238,7 +283,7 @@ const Analytics = () => {
             </div>
           </div>
           
-          <TabView>
+          <TabView onTabChange={handleTabChange}>
             <TabPanel header="Timeline Analysis">
               <Card title="Tutorials Created Over Time" className="shadow-sm mb-4">
                 <Chart type="line" data={monthlyChartData} />

@@ -51,15 +51,50 @@ const Tutorial = () => {
   ];
 
   useEffect(() => {
+    // Set New Relic page view name
+    if (window.newrelic) {
+      window.newrelic.setPageViewName('edit-tutorial');
+      window.newrelic.addPageAction('page_loaded', {
+        component: 'Tutorial',
+        tutorial_id: id,
+        timestamp: new Date().toISOString()
+      });
+    }
+    
     if (id) {
       loadTutorial();
     } else {
       setLoading(false);
     }
+    
+    const startTime = performance.now();
+    return () => {
+      // Clean up or send final metrics when component unmounts
+      if (window.newrelic) {
+        const endTime = performance.now();
+        window.newrelic.addPageAction('page_exited', {
+          component: 'Tutorial',
+          tutorial_id: id,
+          duration_seconds: (endTime - startTime) / 1000,
+          was_modified: dirty
+        });
+      }
+    };
   }, [id]);
 
   const loadTutorial = async () => {
     setLoading(true);
+    
+    // Start a New Relic custom trace segment
+    /*let actionTrace;
+    if (window.newrelic) {
+      actionTrace = window.newrelic.interaction();
+      actionTrace.setName('load-tutorial-for-edit');
+      actionTrace.setAttribute('tutorial_id', id);
+    }
+    
+    const startTime = performance.now(); */
+    
     try {
       // Get categories first
       const categoriesData = await TutorialDataService.getCategories();
@@ -79,7 +114,63 @@ const Tutorial = () => {
       setTutorial(mappedTutorial);
       setSelectedCategory(categoriesData.find(c => c.id == mappedTutorial.category) || null);
       setLoading(false);
+      
+     /* const endTime = performance.now();
+      
+      if (window.newrelic) {
+        window.newrelic.addToTrace({
+          name: 'tutorial_loaded_for_edit',
+          start: startTime,
+          end: endTime,
+          type: 'data_fetch'
+        });
+        window.newrelic.setCustomAttribute('api_metric', 'api.tutorial.get.duration');
+        window.newrelic.setCustomAttribute('status_code', 200);
+        window.newrelic.setCustomAttribute('tutorial_id', id);
+        window.newrelic.setCustomAttribute('tutorial_title', mappedTutorial.title);
+        window.newrelic.setCustomAttribute('category', mappedTutorial.category);
+        window.newrelic.setCustomAttribute('is_published', mappedTutorial.published);
+        
+        window.newrelic.setCustomAttribute('current_tutorial_id', id);
+        window.newrelic.setCustomAttribute('current_tutorial_title', mappedTutorial.title);
+        window.newrelic.setCustomAttribute('current_tutorial_published', mappedTutorial.published);
+        
+        // Complete the interaction
+        if (actionTrace) {
+          actionTrace.setAttribute('duration_ms', endTime - startTime);
+          actionTrace.setAttribute('success', true);
+          actionTrace.save();
+        }
+      } */
     } catch (error) {
+      /*const endTime = performance.now();
+      
+      if (window.newrelic) {
+        window.newrelic.addToTrace({
+          name: 'tutorial_load_failed',
+          type: 'data_fetch',
+          start: startTime,
+          end: endTime,
+          metric: 'api.tutorial.get.failed',
+          statusCode: error.response?.status || 500,
+          tutorial_id: id,
+          error_message: error.message
+        });
+        
+        window.newrelic.noticeError(error, {
+          component: 'Tutorial',
+          action: 'loadTutorial',
+          tutorial_id: id
+        });
+        
+        // Complete the interaction
+        if (actionTrace) {
+          actionTrace.setAttribute('error', error.message);
+          actionTrace.setAttribute('duration_ms', endTime - startTime);
+          actionTrace.save();
+        }
+      } */
+      
       console.error("Error loading tutorial:", error);
       navigate(`/404/${id}`);
       setLoading(false);
@@ -90,44 +181,141 @@ const Tutorial = () => {
     const { name, value } = event.target;
     setTutorial({ ...tutorial, [name]: value });
     setDirty(true);
+    
+    // Track significant field changes
+    if (name === 'title' || name === 'description') {
+      /* if (window.newrelic && value.length > 0) {
+        window.newrelic.addPageAction('field_updated', {
+          field_name: name,
+          character_count: value.length,
+          tutorial_id: tutorial.id,
+          timestamp: new Date().toISOString()
+        });
+      } */
+    }
   };
 
   const handleNumberChange = (name, value) => {
     setTutorial({ ...tutorial, [name]: value });
     setDirty(true);
+    
+    /*if (window.newrelic) {
+      window.newrelic.addPageAction('field_updated', {
+        field_name: name,
+        value: value,
+        tutorial_id: tutorial.id,
+        timestamp: new Date().toISOString()
+      });
+    } */
   };
 
   const onCategoryChange = (event) => {
     setSelectedCategory(event.value);
     setTutorial({...tutorial, 'category': event.value.id});
     setDirty(true);
+    
+    /*if (window.newrelic) {
+      window.newrelic.addPageAction('category_updated', {
+        category_id: event.value.id,
+        category_name: event.value.category,
+        tutorial_id: tutorial.id,
+        timestamp: new Date().toISOString()
+      });
+    } */
   };
   
   const onDifficultyChange = (event) => {
     setTutorial({...tutorial, 'difficulty': event.value});
     setDirty(true);
+    
+    /*if (window.newrelic) {
+      window.newrelic.addPageAction('difficulty_updated', {
+        difficulty: event.value,
+        tutorial_id: tutorial.id,
+        timestamp: new Date().toISOString()
+      });
+    } */
   };
   
   const onTagsChange = (tags) => {
     setTagArray(tags);
     setTutorial({...tutorial, 'tags': tags.join(',')});
     setDirty(true);
+
+    /*if (window.newrelic) {
+      window.newrelic.addPageAction('tags_updated', {
+        tags_count: tags.length,
+        tags: tags.join(','),
+        tutorial_id: tutorial.id,
+        timestamp: new Date().toISOString()
+      });
+    } */
   };
 
   const togglePublished = () => {
+    /*if (window.newrelic) {
+      window.newrelic.addPageAction('toggle_published_clicked', {
+        tutorial_id: tutorial.id,
+        tutorial_title: tutorial.title,
+        current_status: tutorial.published,
+        new_status: !tutorial.published,
+        timestamp: new Date().toISOString()
+      });
+    } */    
+    
     updatePublishedStatus(!tutorial.published);
   };
 
   const updatePublishedStatus = (newStatus) => {
     setProcessing(true);
     
+    // Start a New Relic custom trace segment
+    /*let actionTrace;
+    if (window.newrelic) {
+      actionTrace = window.newrelic.interaction();
+      actionTrace.setName('update-tutorial-status');
+      actionTrace.setAttribute('tutorial_id', tutorial.id);
+      actionTrace.setAttribute('new_status', newStatus ? 'published' : 'unpublished');
+    } */
+    
     const updatedTutorial = {
       ...tutorial,
       published: newStatus
     };
     
+    // const startTime = performance.now();
+    
     TutorialDataService.update(tutorial.id, updatedTutorial)
       .then(() => {
+        /* const endTime = performance.now();
+        
+        if (window.newrelic) {
+          window.newrelic.addToTrace({
+            name: 'tutorial_status_update',
+            start: startTime,
+            end: endTime,
+            type: 'tutorial'
+          });
+          window.newrelic.setCustomAttribute('api_metric', 'api.tutorial.update.duration');
+          window.newrelic.setCustomAttribute('status_code', 200);
+          window.newrelic.setCustomAttribute('tutorial_id', tutorial.id);
+          
+          window.newrelic.addPageAction('tutorial_status_updated', {
+            tutorial_id: tutorial.id,
+            tutorial_title: tutorial.title,
+            new_status: newStatus ? 'published' : 'unpublished',
+            processing_time_ms: endTime - startTime,
+            timestamp: new Date().toISOString()
+          });
+          
+          // Complete the interaction
+          if (actionTrace) {
+            actionTrace.setAttribute('duration_ms', endTime - startTime);
+            actionTrace.setAttribute('success', true);
+            actionTrace.save();
+          }
+        } */
+        
         setTutorial({ ...tutorial, published: newStatus });
         
         toast.current.show({
@@ -140,6 +328,35 @@ const Tutorial = () => {
         setProcessing(false);
       })
       .catch(error => {
+        /* const endTime = performance.now();
+        
+        if (window.newrelic) {
+          window.newrelic.addToTrace({
+            name: 'tutorial_status_update_failed',
+            start: startTime,
+            end: endTime,
+            type: 'tutorial'
+          });
+          window.newrelic.setCustomAttribute('api_metric', 'api.tutorial.update.failed');
+          window.newrelic.setCustomAttribute('status_code', error.response?.status || 500);
+          window.newrelic.setCustomAttribute('tutorial_id', tutorial.id);
+          window.newrelic.setCustomAttribute('error_message', error.message);
+          
+          window.newrelic.noticeError(error, {
+            action: 'update_published_status',
+            tutorial_id: tutorial.id,
+            tutorial_title: tutorial.title
+          });
+          
+          // Complete the interaction
+          if (actionTrace) {
+            actionTrace.setAttribute('error', error.message);
+            actionTrace.setAttribute('duration_ms', endTime - startTime);
+            actionTrace.setAttribute('success', false);
+            actionTrace.save();
+          }
+        } */
+        
         console.error("Error updating status:", error);
         
         toast.current.show({
@@ -161,13 +378,67 @@ const Tutorial = () => {
         detail: 'Title is required',
         life: 3000
       });
+      
+      /*if (window.newrelic) {
+        window.newrelic.addPageAction('validation_error', {
+          field: 'title',
+          error: 'required',
+          tutorial_id: tutorial.id,
+          timestamp: new Date().toISOString()
+        });
+      } */
+      
       return;
     }
     
     setProcessing(true);
     
+    // Start a New Relic custom trace segment
+    /*let actionTrace;
+    if (window.newrelic) {
+      actionTrace = window.newrelic.interaction();
+      actionTrace.setName('save-tutorial-changes');
+      actionTrace.setAttribute('tutorial_id', tutorial.id);
+      
+      window.newrelic.addPageAction('tutorial_save_started', {
+        tutorial_id: tutorial.id,
+        tutorial_title: tutorial.title,
+        timestamp: new Date().toISOString()
+      });
+    } 
+    
+    const startTime = performance.now(); */
+    
     TutorialDataService.update(tutorial.id, tutorial)
       .then(() => {
+        /*const endTime = performance.now();
+        
+        if (window.newrelic) {
+          window.newrelic.addToTrace({
+            name: 'tutorial_updated',
+            start: startTime,
+            end: endTime,
+            type: 'tutorial'
+          });
+          window.newrelic.setCustomAttribute('api_metric', 'api.tutorial.update.duration');
+          window.newrelic.setCustomAttribute('status_code', 200);
+          window.newrelic.setCustomAttribute('tutorial_id', tutorial.id);
+          
+          window.newrelic.addPageAction('tutorial_updated', {
+            tutorial_id: tutorial.id,
+            tutorial_title: tutorial.title,
+            processing_time_ms: endTime - startTime,
+            timestamp: new Date().toISOString()
+          });
+          
+          // Complete the interaction
+          if (actionTrace) {
+            actionTrace.setAttribute('duration_ms', endTime - startTime);
+            actionTrace.setAttribute('success', true);
+            actionTrace.save();
+          }
+        } */
+        
         toast.current.show({
           severity: 'success',
           summary: 'Success',
@@ -179,6 +450,35 @@ const Tutorial = () => {
         setProcessing(false);
       })
       .catch(error => {
+        /*const endTime = performance.now();
+        
+        if (window.newrelic) {
+          window.newrelic.addToTrace({
+            name: 'tutorial_update_failed',
+            type: 'tutorial',
+            start: startTime,
+            end: endTime,
+            metric: 'api.tutorial.update.failed',
+            statusCode: error.response?.status || 500,
+            tutorial_id: tutorial.id,
+            error_message: error.message
+          });
+          
+          window.newrelic.noticeError(error, {
+            action: 'update_tutorial',
+            tutorial_id: tutorial.id,
+            tutorial_title: tutorial.title
+          });
+          
+          // Complete the interaction
+          if (actionTrace) {
+            actionTrace.setAttribute('error', error.message);
+            actionTrace.setAttribute('duration_ms', endTime - startTime);
+            actionTrace.setAttribute('success', false);
+            actionTrace.save();
+          }
+        } */
+        
         console.error("Error updating tutorial:", error);
         
         toast.current.show({
@@ -193,6 +493,14 @@ const Tutorial = () => {
   };
 
   const confirmDeleteTutorial = () => {
+    /*if (window.newrelic) {
+      window.newrelic.addPageAction('delete_tutorial_dialog_opened', {
+        tutorial_id: tutorial.id,
+        tutorial_title: tutorial.title,
+        timestamp: new Date().toISOString()
+      });
+    } */
+    
     confirmDialog({
       message: 'Are you sure you want to delete this tutorial?',
       header: 'Delete Confirmation',
@@ -205,8 +513,52 @@ const Tutorial = () => {
   const deleteTutorial = () => {
     setProcessing(true);
     
+    // Start a New Relic custom trace segment
+    /*let actionTrace;
+    if (window.newrelic) {
+      actionTrace = window.newrelic.interaction();
+      actionTrace.setName('delete-tutorial');
+      actionTrace.setAttribute('tutorial_id', tutorial.id);
+      
+      window.newrelic.addPageAction('tutorial_delete_started', {
+        tutorial_id: tutorial.id,
+        tutorial_title: tutorial.title,
+        timestamp: new Date().toISOString()
+      });
+    } 
+    
+    const startTime = performance.now();*/
+    
     TutorialDataService.remove(tutorial.id)
       .then(() => {
+        /*const endTime = performance.now();
+        
+        if (window.newrelic) {
+          window.newrelic.addToTrace({
+            name: 'tutorial_deleted',
+            type: 'tutorial',
+            start: startTime,
+            end: endTime,
+            metric: 'api.tutorial.delete.duration',
+            statusCode: 200,
+            tutorial_id: tutorial.id
+          });
+          
+          window.newrelic.addPageAction('tutorial_deleted', {
+            tutorial_id: tutorial.id,
+            tutorial_title: tutorial.title,
+            processing_time_ms: endTime - startTime,
+            timestamp: new Date().toISOString()
+          });
+          
+          // Complete the interaction
+          if (actionTrace) {
+            actionTrace.setAttribute('duration_ms', endTime - startTime);
+            actionTrace.setAttribute('success', true);
+            actionTrace.save();
+          }
+        } */
+        
         toast.current.show({
           severity: 'success',
           summary: 'Success',
@@ -217,6 +569,35 @@ const Tutorial = () => {
         navigate("/tutorials");
       })
       .catch(error => {
+        /*const endTime = performance.now();
+        
+        if (window.newrelic) {
+          window.newrelic.addToTrace({
+            name: 'tutorial_delete_failed',
+            type: 'tutorial',
+            start: startTime,
+            end: endTime,
+            metric: 'api.tutorial.delete.failed',
+            statusCode: error.response?.status || 500,
+            tutorial_id: tutorial.id,
+            error_message: error.message
+          });
+          
+          window.newrelic.noticeError(error, {
+            action: 'delete_tutorial',
+            tutorial_id: tutorial.id,
+            tutorial_title: tutorial.title
+          });
+          
+          // Complete the interaction
+          if (actionTrace) {
+            actionTrace.setAttribute('error', error.message);
+            actionTrace.setAttribute('duration_ms', endTime - startTime);
+            actionTrace.setAttribute('success', false);
+            actionTrace.save();
+          }
+        } */
+        
         console.error("Error deleting tutorial:", error);
         
         toast.current.show({
@@ -231,6 +612,15 @@ const Tutorial = () => {
   };
 
   const handleCancel = () => {
+    /*if (window.newrelic) {
+      window.newrelic.addPageAction('cancel_tutorial_edit', {
+        tutorial_id: tutorial.id,
+        tutorial_title: tutorial.title,
+        was_modified: dirty,
+        timestamp: new Date().toISOString()
+      });
+    } */
+    
     navigate("/tutorials");
   };
 
