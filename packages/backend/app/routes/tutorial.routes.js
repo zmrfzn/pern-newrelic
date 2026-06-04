@@ -18,6 +18,9 @@ module.exports = app => {
   // Get tutorials by difficulty level
   router.get("/difficulty/:difficulty", tutorials.findByDifficulty);
 
+  // Retrieve a single Tutorial debug payload with id
+  router.get("/:id/debug", tutorials.findOneDebug);
+
   // Retrieve a single Tutorial with id
   router.get("/:id", tutorials.findOne);
 

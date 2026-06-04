@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import TutorialDataService from "../services/TutorialService";
 import { Card } from 'primereact/card';
 import { Button } from 'primereact/button';
@@ -14,6 +14,7 @@ import ActionButtons from "./common/ActionButtons";
 const TutorialView = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const toast = useRef(null);
   
   const [tutorial, setTutorial] = useState(null);
@@ -27,8 +28,13 @@ const TutorialView = () => {
   const loadTutorial = async () => {
     setLoading(true);
     try {
+      const searchParams = new URLSearchParams(location.search);
+      const crashMode = searchParams.get('crash');
+
       // Load the tutorial
-      const response = await TutorialDataService.get(id);
+      const response = crashMode === 'description-null'
+        ? await TutorialDataService.getForDebug(id, crashMode)
+        : await TutorialDataService.get(id);
       
       // Apply difficulty and category mapping
       const tutorialData = mapDifficulty(response.data);

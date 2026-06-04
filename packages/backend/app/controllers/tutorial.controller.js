@@ -144,6 +144,46 @@ exports.findOne = (req, res) => {
     });
 };
 
+// Debug endpoint for frontend lab scenarios.
+// Returns a fault-injected payload without updating persisted data.
+exports.findOneDebug = (req, res) => {
+  logger.info(`${req.method} ${req.originalUrl} : Debug fetch for tutorial id ${req.params.id}`);
+
+  if (!req.params.id || !uuidValidate(req.params.id)) {
+    logger.error(`${req.method} ${req.originalUrl} : Invalid tutorial id ${req.params.id}`);
+    return res.status(400).send({ message: "Invalid tutorial id " + req.params.id });
+  }
+
+  const id = req.params.id;
+  const fault = req.query.fault;
+
+  Tutorial.findByPk(id)
+    .then((data) => {
+      if (!data) {
+        return res.status(404).send({ message: "Tutorial not found with id " + id });
+      }
+
+      const payload = data.toJSON();
+
+      if (fault === "description-null") {
+        payload.description = null;
+      }
+
+      res.send(payload);
+    })
+    .catch((err) => {
+      logger.error(
+        `${req.method} ${req.originalUrl}- ${JSON.stringify(
+          req.params
+        )} - Error fetching debug data`
+      );
+
+      res
+        .status(500)
+        .send({ message: "Error retrieving Tutorial debug payload with id=" + id });
+    });
+};
+
 // Update a Tutorial by the id in the request
 exports.update = (req, res) => {
   if (!req.body) {

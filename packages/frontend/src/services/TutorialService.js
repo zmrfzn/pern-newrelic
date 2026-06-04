@@ -49,6 +49,12 @@ const get = id => {
   return http.get(`/tutorials/${id}`);
 };
 
+const getForDebug = (id, fault) => {
+  return http.get(`/tutorials/${id}/debug`, {
+    params: { fault }
+  });
+};
+
 const create = data => {
   return http.post("/tutorials", data);
 };
@@ -92,6 +98,7 @@ const decrementLikes = id => {
 const TutorialService = {
   getAll,
   get,
+  getForDebug,
   getCategories,
   create,
   update,
