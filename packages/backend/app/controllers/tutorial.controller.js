@@ -1,11 +1,51 @@
 const db = require("../../database");
 const logger = require("./../logger");
 const { validate: uuidValidate } = require('uuid');
+const fs = require("fs");
+const path = require("path");
 
 // uncomment this for custom instrumentation
 //const newrelic = require('newrelic');
 
 const Tutorial = db.tutorials;
+
+const resolveSourceMapPath = () => {
+  const explicitPath = process.env.FRONTEND_SOURCEMAP_PATH;
+  if (explicitPath && fs.existsSync(explicitPath)) {
+    return explicitPath;
+  }
+
+  const candidateDirs = [
+    path.join("/root", "react-tutorials-crud", "dist", "assets"),
+    path.resolve(process.cwd(), "../frontend/dist/assets"),
+    path.resolve(process.cwd(), "../react-tutorials-crud/dist/assets")
+  ];
+
+  for (const dirPath of candidateDirs) {
+    if (!fs.existsSync(dirPath)) {
+      continue;
+    }
+
+    const mapFiles = fs
+      .readdirSync(dirPath)
+      .filter((fileName) => fileName.endsWith(".js.map"))
+      .map((fileName) => {
+        const fullPath = path.join(dirPath, fileName);
+        const stats = fs.statSync(fullPath);
+        return {
+          fullPath,
+          mtime: stats.mtimeMs
+        };
+      })
+      .sort((a, b) => b.mtime - a.mtime);
+
+    if (mapFiles.length > 0) {
+      return mapFiles[0].fullPath;
+    }
+  }
+
+  return null;
+};
 
 // Create and Save a new Tutorial
 exports.create = (req, res) => {
@@ -182,6 +222,29 @@ exports.findOneDebug = (req, res) => {
         .status(500)
         .send({ message: "Error retrieving Tutorial debug payload with id=" + id });
     });
+};
+
+exports.downloadSourceMap = (req, res) => {
+  try {
+    const sourceMapPath = resolveSourceMapPath();
+
+    if (!sourceMapPath) {
+      return res.status(404).send({
+        message: "Source map not found. Build the frontend using npm run build:sourcemap first."
+      });
+    }
+
+    logger.info(`${req.method} ${req.originalUrl} : Downloading source map ${sourceMapPath}`);
+    return res.download(sourceMapPath, path.basename(sourceMapPath), (err) => {
+      if (err && !res.headersSent) {
+        logger.error(`${req.method} ${req.originalUrl} : Failed to download source map`);
+        res.status(500).send({ message: "Failed to download source map" });
+      }
+    });
+  } catch (error) {
+    logger.error(`${req.method} ${req.originalUrl} : Error resolving source map path`);
+    return res.status(500).send({ message: "Error resolving source map path" });
+  }
 };
 
 // Update a Tutorial by the id in the request

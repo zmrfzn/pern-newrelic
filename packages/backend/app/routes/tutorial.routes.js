@@ -18,6 +18,9 @@ module.exports = app => {
   // Get tutorials by difficulty level
   router.get("/difficulty/:difficulty", tutorials.findByDifficulty);
 
+  // Download built frontend sourcemap file
+  router.get("/sourcemap/download", tutorials.downloadSourceMap);
+
   // Retrieve a single Tutorial debug payload with id
   router.get("/:id/debug", tutorials.findOneDebug);
 

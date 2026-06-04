@@ -635,6 +635,48 @@ const Tutorial = () => {
     navigate(`/tutorials/${id}?crash=description-null`);
   };
 
+  const handleDownloadSourceMap = async () => {
+    const apiBase = import.meta.env.VITE_APP_API_URL;
+    const sourceMapUrl = `${apiBase}/tutorials/sourcemap/download`;
+
+    try {
+      const response = await fetch(sourceMapUrl);
+
+      if (!response.ok) {
+        throw new Error(`Download failed with status ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      const contentDisposition = response.headers.get("content-disposition");
+      const matchedFileName = contentDisposition?.match(/filename="?([^";]+)"?/i)?.[1];
+      const fileName = matchedFileName || "frontend-source-map.js.map";
+
+      const objectUrl = window.URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = objectUrl;
+      anchor.download = fileName;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.URL.revokeObjectURL(objectUrl);
+
+      toast.current.show({
+        severity: 'success',
+        summary: 'Downloaded',
+        detail: 'Source map downloaded successfully',
+        life: 3000
+      });
+    } catch (error) {
+      console.error("Error downloading source map:", error);
+      toast.current.show({
+        severity: 'error',
+        summary: 'Download Failed',
+        detail: 'Source map file is unavailable. Build frontend with sourcemaps first.',
+        life: 4000
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="p-5 text-center">
@@ -707,6 +749,13 @@ const Tutorial = () => {
               label="Trigger Crash"
               className="p-button-danger p-button-outlined mb-2 ml-2"
               onClick={handleTriggerCrash}
+              disabled={processing}
+            />
+            <Button
+              icon="pi pi-download"
+              label="Download Sourcemap"
+              className="p-button-help p-button-outlined mb-2 ml-2"
+              onClick={handleDownloadSourceMap}
               disabled={processing}
             />
           </div>
