@@ -23,7 +23,7 @@ const TutorialView = () => {
 
   useEffect(() => {
     loadTutorial();
-  }, [id]);
+  }, [id, location.search]);
 
   const loadTutorial = async () => {
     setLoading(true);
@@ -157,6 +157,10 @@ const TutorialView = () => {
     });
   };
 
+  const handleTriggerCrash = () => {
+    window.location.assign(`/view/${id}?crash=description-null`);
+  };
+
   if (loading) {
     return (
       <div className="p-5 text-center">
@@ -249,12 +253,20 @@ const TutorialView = () => {
             onClick={handleLike}
           />
           
-          <Button
-            icon="pi pi-share-alt"
-            label="Share"
-            className="p-button-outlined"
-            onClick={handleShare}
-          />
+          <div className="d-flex">
+            <Button
+              icon="pi pi-share-alt"
+              label="Share"
+              className="p-button-outlined mr-2"
+              onClick={handleShare}
+            />
+            <Button
+              icon="pi pi-exclamation-triangle"
+              label="Trigger Crash"
+              className="p-button-danger p-button-outlined"
+              onClick={handleTriggerCrash}
+            />
+          </div>
         </div>
       </Card>
       
