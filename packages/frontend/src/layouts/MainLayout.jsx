@@ -9,6 +9,7 @@ import nrLogo from '/new_relic_logo_horizontal.png';
 const MainLayout = ({ children }) => {
   const [visible, setVisible] = useState(false);
   const location = useLocation();
+  const sourceMapBrowseUrl = `${import.meta.env.VITE_APP_API_URL}/tutorials/sourcemap/browse?page=tutorialsview`;
 
   const navItems = [
     { path: '/tutorials', label: 'Tutorials', icon: 'pi pi-list' },
@@ -17,6 +18,10 @@ const MainLayout = ({ children }) => {
     { path: '/dashboard', label: 'Dashboard', icon: 'pi pi-chart-bar' },
     { path: '/analytics', label: 'Analytics', icon: 'pi pi-chart-line' }
   ];
+
+  const handleBrowseSourceMaps = () => {
+    window.open(sourceMapBrowseUrl, '_blank', 'noopener,noreferrer');
+  };
 
   return (
     <div className="main-layout">
@@ -46,6 +51,15 @@ const MainLayout = ({ children }) => {
             </li>
           ))}
         </div>
+
+        <div className="ml-auto d-none d-md-flex align-items-center">
+          <Button
+            icon="pi pi-list"
+            label="Browse Sourcemaps"
+            className="p-button-sm p-button-outlined"
+            onClick={handleBrowseSourceMaps}
+          />
+        </div>
         
         {/* <div className="ml-auto d-flex align-items-center">
           <Button 
@@ -63,6 +77,17 @@ const MainLayout = ({ children }) => {
         </div>
         
         <div className="sidebar-menu">
+          <a
+            href={sourceMapBrowseUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="sidebar-item d-flex align-items-center p-3"
+            onClick={() => setVisible(false)}
+          >
+            <i className="pi pi-list mr-3"></i>
+            <span>Browse Sourcemaps</span>
+          </a>
+
           {navItems.map(item => (
             <Link 
               key={item.path}

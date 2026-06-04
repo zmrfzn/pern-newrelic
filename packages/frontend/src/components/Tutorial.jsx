@@ -698,12 +698,6 @@ const Tutorial = () => {
     }
   };
 
-  const handleBrowseSourceMaps = () => {
-    const apiBase = import.meta.env.VITE_APP_API_URL;
-    const browseUrl = `${apiBase}/tutorials/sourcemap/browse?page=tutorialsview`;
-    window.open(browseUrl, "_blank", "noopener,noreferrer");
-  };
-
   if (loading) {
     return (
       <div className="p-5 text-center">
@@ -777,13 +771,6 @@ const Tutorial = () => {
                 label="Trigger Crash"
                 className="p-button-danger p-button-outlined mb-2 ml-2"
                 onClick={handleTriggerCrash}
-                disabled={processing}
-              />
-              <Button
-                icon="pi pi-list"
-                label="Browse Sourcemaps"
-                className="p-button-outlined mb-2 ml-2"
-                onClick={handleBrowseSourceMaps}
                 disabled={processing}
               />
             </div>
