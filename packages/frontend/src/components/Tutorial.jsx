@@ -698,6 +698,12 @@ const Tutorial = () => {
     }
   };
 
+  const handleBrowseSourceMaps = () => {
+    const apiBase = import.meta.env.VITE_APP_API_URL;
+    const browseUrl = `${apiBase}/tutorials/sourcemap/browse?page=tutorialsview`;
+    window.open(browseUrl, "_blank", "noopener,noreferrer");
+  };
+
   if (loading) {
     return (
       <div className="p-5 text-center">
@@ -750,32 +756,41 @@ const Tutorial = () => {
         </div>
         
         <div className="mt-3 mt-md-0">
-          <div className="d-flex flex-wrap justify-content-end">
-            <ActionButtons
-              onCancel={handleCancel}
-              onSave={saveTutorial}
-              onDelete={confirmDeleteTutorial}
-              onPublish={togglePublished}
-              onUnpublish={togglePublished}
-              saveDisabled={!dirty || processing}
-              showDelete={true}
-              showPublish={true}
-              isPublished={tutorial.published}
-              processing={processing}
-              saveLabel="Save Changes"
-              cancelLabel="Back to List"
-            />
-            <Button
-              icon="pi pi-exclamation-triangle"
-              label="Trigger Crash"
-              className="p-button-danger p-button-outlined mb-2 ml-2"
-              onClick={handleTriggerCrash}
-              disabled={processing}
-            />
+          <div className="d-flex flex-wrap align-items-start w-100">
+            <div className="d-flex flex-wrap align-items-start">
+              <ActionButtons
+                onCancel={handleCancel}
+                onSave={saveTutorial}
+                onDelete={confirmDeleteTutorial}
+                onPublish={togglePublished}
+                onUnpublish={togglePublished}
+                saveDisabled={!dirty || processing}
+                showDelete={true}
+                showPublish={true}
+                isPublished={tutorial.published}
+                processing={processing}
+                saveLabel="Save Changes"
+                cancelLabel="Back to List"
+              />
+              <Button
+                icon="pi pi-exclamation-triangle"
+                label="Trigger Crash"
+                className="p-button-danger p-button-outlined mb-2 ml-2"
+                onClick={handleTriggerCrash}
+                disabled={processing}
+              />
+              <Button
+                icon="pi pi-list"
+                label="Browse Sourcemaps"
+                className="p-button-outlined mb-2 ml-2"
+                onClick={handleBrowseSourceMaps}
+                disabled={processing}
+              />
+            </div>
             <Button
               icon="pi pi-download"
               label="Download Sourcemap"
-              className="p-button-help p-button-outlined mb-2 ml-2"
+              className="p-button-help p-button-outlined mb-2 ml-auto"
               onClick={handleDownloadSourceMap}
               disabled={processing}
             />

@@ -315,6 +315,49 @@ exports.listSourceMaps = (req, res) => {
   }
 };
 
+exports.browseSourceMaps = (req, res) => {
+  try {
+    const { page = "tutorialsview" } = req.query;
+    const sourceMapPaths = getAssociatedSourceMapPaths(page);
+
+    if (!sourceMapPaths.length) {
+      return res.status(404).send("Source map not found. Build the frontend using npm run build:sourcemap first.");
+    }
+
+    const mapItems = sourceMapPaths
+      .map((filePath) => path.basename(filePath))
+      .map((fileName) => {
+        const downloadUrl = `${req.baseUrl}/sourcemap/download?file=${encodeURIComponent(fileName)}`;
+        return `<li><a href="${downloadUrl}">${fileName}</a></li>`;
+      })
+      .join("\n");
+
+    const html = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Sourcemap Listing</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 24px; }
+    h2 { margin-bottom: 12px; }
+    ul { line-height: 1.8; }
+  </style>
+</head>
+<body>
+  <h2>Sourcemaps for page: ${page}</h2>
+  <ul>
+    ${mapItems}
+  </ul>
+</body>
+</html>`;
+
+    return res.type("html").send(html);
+  } catch (error) {
+    logger.error(`${req.method} ${req.originalUrl} : Error rendering source map listing`);
+    return res.status(500).send("Error rendering source map listing");
+  }
+};
+
 // Update a Tutorial by the id in the request
 exports.update = (req, res) => {
   if (!req.body) {
