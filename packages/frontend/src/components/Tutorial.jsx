@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import TutorialDataService from "../services/TutorialService";
 import { Card } from 'primereact/card';
+import { Button } from 'primereact/button';
 import { Chip } from 'primereact/chip';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
@@ -20,6 +21,7 @@ const Tutorial = () => {
   const toast = useRef(null);
   const { id } = useParams();
   let navigate = useNavigate();
+  const location = useLocation();
 
   const initialTutorialState = {
     id: null,
@@ -80,7 +82,7 @@ const Tutorial = () => {
         });
       }
     };
-  }, [id]);
+  }, [id, location.search]);
 
   const loadTutorial = async () => {
     setLoading(true);
@@ -96,12 +98,17 @@ const Tutorial = () => {
     const startTime = performance.now(); */
     
     try {
+      const searchParams = new URLSearchParams(location.search);
+      const crashMode = searchParams.get('crash');
+
       // Get categories first
       const categoriesData = await TutorialDataService.getCategories();
       setCategories(categoriesData);
       
       // Then get tutorial details
-      const response = await TutorialDataService.get(id);
+      const response = crashMode === 'description-null'
+        ? await TutorialDataService.getForDebug(id, crashMode)
+        : await TutorialDataService.get(id);
       const tutorialData = response.data;
       
       // Apply difficulty mapping
@@ -624,6 +631,10 @@ const Tutorial = () => {
     navigate("/tutorials");
   };
 
+  const handleTriggerCrash = () => {
+    navigate(`/tutorials/${id}?crash=description-null`);
+  };
+
   if (loading) {
     return (
       <div className="p-5 text-center">
@@ -657,6 +668,7 @@ const Tutorial = () => {
   };
 
   const lastUpdated = new Date(tutorial.updatedAt).toLocaleString();
+  const descriptionLineCount = tutorial.description.split('\n').length;
 
   return (
     <div className="tutorial-editor p-3">
@@ -675,20 +687,29 @@ const Tutorial = () => {
         </div>
         
         <div className="mt-3 mt-md-0">
-          <ActionButtons
-            onCancel={handleCancel}
-            onSave={saveTutorial}
-            onDelete={confirmDeleteTutorial}
-            onPublish={togglePublished}
-            onUnpublish={togglePublished}
-            saveDisabled={!dirty || processing}
-            showDelete={true}
-            showPublish={true}
-            isPublished={tutorial.published}
-            processing={processing}
-            saveLabel="Save Changes"
-            cancelLabel="Back to List"
-          />
+          <div className="d-flex flex-wrap justify-content-end">
+            <ActionButtons
+              onCancel={handleCancel}
+              onSave={saveTutorial}
+              onDelete={confirmDeleteTutorial}
+              onPublish={togglePublished}
+              onUnpublish={togglePublished}
+              saveDisabled={!dirty || processing}
+              showDelete={true}
+              showPublish={true}
+              isPublished={tutorial.published}
+              processing={processing}
+              saveLabel="Save Changes"
+              cancelLabel="Back to List"
+            />
+            <Button
+              icon="pi pi-exclamation-triangle"
+              label="Trigger Crash"
+              className="p-button-danger p-button-outlined mb-2 ml-2"
+              onClick={handleTriggerCrash}
+              disabled={processing}
+            />
+          </div>
         </div>
       </div>
       
@@ -857,6 +878,11 @@ const Tutorial = () => {
                     <i className="pi pi-thumbs-up mr-2"></i>
                     {tutorial.likes || 0}
                   </span>
+                </p>
+
+                <p className="mb-2">
+                  <strong>Description Lines:</strong><br />
+                  <small className="text-muted">{descriptionLineCount}</small>
                 </p>
                 
                 <p className="mb-2">
