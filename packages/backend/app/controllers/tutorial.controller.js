@@ -9,10 +9,10 @@ const path = require("path");
 
 const Tutorial = db.tutorials;
 
-const resolveSourceMapPath = () => {
+const getSourceMapCandidates = () => {
   const explicitPath = process.env.FRONTEND_SOURCEMAP_PATH;
   if (explicitPath && fs.existsSync(explicitPath)) {
-    return explicitPath;
+    return [explicitPath];
   }
 
   const candidateDirs = [
@@ -20,6 +20,8 @@ const resolveSourceMapPath = () => {
     path.resolve(process.cwd(), "../frontend/dist/assets"),
     path.resolve(process.cwd(), "../react-tutorials-crud/dist/assets")
   ];
+
+  const allMapFiles = [];
 
   for (const dirPath of candidateDirs) {
     if (!fs.existsSync(dirPath)) {
@@ -39,12 +41,46 @@ const resolveSourceMapPath = () => {
       })
       .sort((a, b) => b.mtime - a.mtime);
 
-    if (mapFiles.length > 0) {
-      return mapFiles[0].fullPath;
-    }
+    allMapFiles.push(...mapFiles.map((file) => file.fullPath));
   }
 
-  return null;
+  return Array.from(new Set(allMapFiles));
+};
+
+const PAGE_SOURCE_HINTS = {
+  tutorialsview: [
+    "src/components/Tutorial.jsx",
+    "src/components/TutorialView.jsx"
+  ]
+};
+
+const getAssociatedSourceMapPaths = (page = "tutorialsview") => {
+  const sourceHints = PAGE_SOURCE_HINTS[page] || [];
+  const candidates = getSourceMapCandidates();
+
+  if (!sourceHints.length || !candidates.length) {
+    return candidates;
+  }
+
+  const matched = candidates.filter((filePath) => {
+    try {
+      const mapContent = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+      const sources = Array.isArray(mapContent.sources) ? mapContent.sources : [];
+      return sourceHints.some((hint) =>
+        sources.some((sourceEntry) => sourceEntry.includes(hint))
+      );
+    } catch (error) {
+      return false;
+    }
+  });
+
+  // Fallback to all map files if no hint-specific match is found.
+  return matched.length > 0 ? matched : candidates;
+};
+
+const findSourceMapByName = (fileName) => {
+  const allMaps = getSourceMapCandidates();
+  return allMaps.find((filePath) => path.basename(filePath) === fileName) || null;
 };
 
 // Create and Save a new Tutorial
@@ -226,16 +262,25 @@ exports.findOneDebug = (req, res) => {
 
 exports.downloadSourceMap = (req, res) => {
   try {
-    const sourceMapPath = resolveSourceMapPath();
+    const { file, page = "tutorialsview" } = req.query;
+    const sourceMapPath = file ? findSourceMapByName(file) : null;
 
-    if (!sourceMapPath) {
+    if (file && !sourceMapPath) {
+      return res.status(404).send({
+        message: `Source map file ${file} was not found.`
+      });
+    }
+
+    const resolvedPath = sourceMapPath || getAssociatedSourceMapPaths(page)[0] || null;
+
+    if (!resolvedPath) {
       return res.status(404).send({
         message: "Source map not found. Build the frontend using npm run build:sourcemap first."
       });
     }
 
-    logger.info(`${req.method} ${req.originalUrl} : Downloading source map ${sourceMapPath}`);
-    return res.download(sourceMapPath, path.basename(sourceMapPath), (err) => {
+    logger.info(`${req.method} ${req.originalUrl} : Downloading source map ${resolvedPath}`);
+    return res.download(resolvedPath, path.basename(resolvedPath), (err) => {
       if (err && !res.headersSent) {
         logger.error(`${req.method} ${req.originalUrl} : Failed to download source map`);
         res.status(500).send({ message: "Failed to download source map" });
@@ -244,6 +289,29 @@ exports.downloadSourceMap = (req, res) => {
   } catch (error) {
     logger.error(`${req.method} ${req.originalUrl} : Error resolving source map path`);
     return res.status(500).send({ message: "Error resolving source map path" });
+  }
+};
+
+exports.listSourceMaps = (req, res) => {
+  try {
+    const { page = "tutorialsview" } = req.query;
+    const sourceMapPaths = getAssociatedSourceMapPaths(page);
+
+    if (!sourceMapPaths.length) {
+      return res.status(404).send({
+        message: "Source map not found. Build the frontend using npm run build:sourcemap first."
+      });
+    }
+
+    return res.send({
+      page,
+      files: sourceMapPaths.map((filePath) => ({
+        name: path.basename(filePath)
+      }))
+    });
+  } catch (error) {
+    logger.error(`${req.method} ${req.originalUrl} : Error listing source map paths`);
+    return res.status(500).send({ message: "Error listing source map paths" });
   }
 };
 

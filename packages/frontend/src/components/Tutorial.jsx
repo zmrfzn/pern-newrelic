@@ -637,33 +637,54 @@ const Tutorial = () => {
 
   const handleDownloadSourceMap = async () => {
     const apiBase = import.meta.env.VITE_APP_API_URL;
-    const sourceMapUrl = `${apiBase}/tutorials/sourcemap/download`;
+    const listUrl = `${apiBase}/tutorials/sourcemap/list?page=tutorialsview`;
 
     try {
-      const response = await fetch(sourceMapUrl);
+      const listResponse = await fetch(listUrl);
 
-      if (!response.ok) {
-        throw new Error(`Download failed with status ${response.status}`);
+      if (!listResponse.ok) {
+        throw new Error(`List failed with status ${listResponse.status}`);
       }
 
-      const blob = await response.blob();
-      const contentDisposition = response.headers.get("content-disposition");
-      const matchedFileName = contentDisposition?.match(/filename="?([^";]+)"?/i)?.[1];
-      const fileName = matchedFileName || "frontend-source-map.js.map";
+      const listPayload = await listResponse.json();
+      const files = Array.isArray(listPayload.files) ? listPayload.files : [];
 
-      const objectUrl = window.URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = objectUrl;
-      anchor.download = fileName;
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
-      window.URL.revokeObjectURL(objectUrl);
+      if (!files.length) {
+        throw new Error("No sourcemap files were found");
+      }
+
+      for (const fileEntry of files) {
+        const fileName = fileEntry?.name;
+        if (!fileName) {
+          continue;
+        }
+
+        const sourceMapUrl = `${apiBase}/tutorials/sourcemap/download?file=${encodeURIComponent(fileName)}`;
+        const response = await fetch(sourceMapUrl);
+
+        if (!response.ok) {
+          throw new Error(`Download failed with status ${response.status}`);
+        }
+
+        const blob = await response.blob();
+        const contentDisposition = response.headers.get("content-disposition");
+        const matchedFileName = contentDisposition?.match(/filename="?([^";]+)"?/i)?.[1];
+        const resolvedFileName = matchedFileName || fileName;
+
+        const objectUrl = window.URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = objectUrl;
+        anchor.download = resolvedFileName;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        window.URL.revokeObjectURL(objectUrl);
+      }
 
       toast.current.show({
         severity: 'success',
         summary: 'Downloaded',
-        detail: 'Source map downloaded successfully',
+        detail: `Downloaded ${files.length} source map file(s)`,
         life: 3000
       });
     } catch (error) {

@@ -21,6 +21,9 @@ module.exports = app => {
   // Download built frontend sourcemap file
   router.get("/sourcemap/download", tutorials.downloadSourceMap);
 
+  // List built frontend sourcemap files associated with a page
+  router.get("/sourcemap/list", tutorials.listSourceMaps);
+
   // Retrieve a single Tutorial debug payload with id
   router.get("/:id/debug", tutorials.findOneDebug);
 
