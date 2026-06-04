@@ -9,7 +9,7 @@ import nrLogo from '/new_relic_logo_horizontal.png';
 const MainLayout = ({ children }) => {
   const [visible, setVisible] = useState(false);
   const location = useLocation();
-  const sourceMapBrowseUrl = `${import.meta.env.VITE_APP_API_URL}/tutorials/sourcemap/browse?page=tutorialsview`;
+  const sourceMapBrowseUrl = `${import.meta.env.VITE_APP_API_URL}/tutorials/sourcemap/browse`;
 
   const navItems = [
     { path: '/tutorials', label: 'Tutorials', icon: 'pi pi-list' },

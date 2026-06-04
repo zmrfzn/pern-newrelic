@@ -54,7 +54,7 @@ const PAGE_SOURCE_HINTS = {
   ]
 };
 
-const getAssociatedSourceMapPaths = (page = "tutorialsview") => {
+const getAssociatedSourceMapPaths = (page) => {
   const sourceHints = PAGE_SOURCE_HINTS[page] || [];
   const candidates = getSourceMapCandidates();
 
@@ -262,7 +262,7 @@ exports.findOneDebug = (req, res) => {
 
 exports.downloadSourceMap = (req, res) => {
   try {
-    const { file, page = "tutorialsview" } = req.query;
+    const { file, page } = req.query;
     const sourceMapPath = file ? findSourceMapByName(file) : null;
 
     if (file && !sourceMapPath) {
@@ -294,7 +294,7 @@ exports.downloadSourceMap = (req, res) => {
 
 exports.listSourceMaps = (req, res) => {
   try {
-    const { page = "tutorialsview" } = req.query;
+    const { page } = req.query;
     const sourceMapPaths = getAssociatedSourceMapPaths(page);
 
     if (!sourceMapPaths.length) {
@@ -317,7 +317,7 @@ exports.listSourceMaps = (req, res) => {
 
 exports.browseSourceMaps = (req, res) => {
   try {
-    const { page = "tutorialsview" } = req.query;
+    const { page } = req.query;
     const sourceMapPaths = getAssociatedSourceMapPaths(page);
 
     if (!sourceMapPaths.length) {
@@ -344,7 +344,7 @@ exports.browseSourceMaps = (req, res) => {
   </style>
 </head>
 <body>
-  <h2>Sourcemaps for page: ${page}</h2>
+  <h2>Sourcemaps${page ? ` for page: ${page}` : ""}</h2>
   <ul>
     ${mapItems}
   </ul>
