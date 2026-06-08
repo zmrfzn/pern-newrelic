@@ -71,6 +71,9 @@ const Analytics = () => {
   }, [timeRangeFilter, categoryFilter]);
 
   const processData = (tutorials, categories) => {
+    // uncomment this for custom instrumentation (marks & measures) — START
+    // performance.mark('analytics:process-start');
+
     // Filter tutorials by time range if necessary
     let filteredTutorials = [...tutorials];
     
@@ -181,6 +184,29 @@ const Analytics = () => {
     } else {
       setWordCountStats({ average: 0, max: 0, min: 0 });
     }
+
+    // uncomment this for custom instrumentation (marks & measures) — END
+    /*
+    performance.mark('analytics:process-end');
+    const processMeasure = performance.measure(
+      'analytics-process',
+      'analytics:process-start',
+      'analytics:process-end'
+    );
+    console.log(`[perf] analytics-process took ${processMeasure.duration.toFixed(1)}ms`);
+
+    // Explicitly forward the measured duration to New Relic Browser.
+    // Lands as a PageAction event; the performance.measure() entry is also
+    // captured by the Browser agent as a BrowserPerformance event.
+    if (window.newrelic) {
+      window.newrelic.addPageAction('AnalyticsProcessed', {
+        durationMs: processMeasure.duration,
+        timeRange: timeRangeFilter,
+        category: categoryFilter?.category || 'All Categories',
+        tutorialCount: filteredTutorials.length
+      });
+    }
+    */
   };
 
   const timeRangeOptions = [
