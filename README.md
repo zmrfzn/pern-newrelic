@@ -19,7 +19,7 @@ pern/
 
 ### Prerequisites
 
-- Node.js (v16 or later)
+- Node.js (v22 or later)
 - npm 
 - PostgreSQL database
 
