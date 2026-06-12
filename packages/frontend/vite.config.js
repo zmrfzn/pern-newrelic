@@ -12,7 +12,8 @@ export default defineConfig({
   },
   build: {
     minify: 'esbuild',
-    reportCompressedSize: false
+    reportCompressedSize: false,
+    sourcemap: true,
   },
   server: {
     port:80,

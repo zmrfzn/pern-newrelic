@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import TutorialDataService from "../services/TutorialService";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Card } from 'primereact/card';
@@ -28,10 +28,21 @@ const TutorialsList = () => {
   const [difficultyFilter, setDifficultyFilter] = useState(null);
   const [sortField, setSortField] = useState('updatedAt');
   const [sortOrder, setSortOrder] = useState(-1);
+  const [addingNew, setAddingNew] = useState(false);
   
   const toast = useRef(null);
   const dt = useRef(null);
   const navigate = useNavigate();
+
+  const handleAddNew = () => {
+    if (addingNew) return;
+    setAddingNew(true);
+    // Synthetic delay — intentionally slow to trigger rage clicks for NR Browser demo
+    setTimeout(() => {
+      navigate('/add');
+      setAddingNew(false);
+    }, 2500);
+  };
 
   const difficultyOptions = [
     { label: 'All Levels', value: null },
@@ -368,13 +379,12 @@ const TutorialsList = () => {
       <div className="d-flex flex-column flex-md-row justify-content-between mb-4">
         <h2>Tutorials</h2>
         <div>
-          <Link to="/add">
-            <Button 
-              label="Add New" 
-              icon="pi pi-plus" 
-              className="p-button-success mb-2 mb-md-0"
-            />
-          </Link>
+          <Button
+            label={addingNew ? 'Creating...' : 'Add New'}
+            icon={addingNew ? 'pi pi-spin pi-spinner' : 'pi pi-plus'}
+            className="p-button-success mb-2 mb-md-0"
+            onClick={handleAddNew}
+          />
           <Button 
             label="Delete All" 
             icon="pi pi-trash" 

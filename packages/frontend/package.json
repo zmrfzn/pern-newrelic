@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "start": "env-cmd -f  ./.env vite --host",
+    "start": "env-cmd -f ./.env vite --host",
     "build": "vite build",
     "build:sourcemap": "vite build --sourcemap",
     "preview": "vite preview --host 0.0.0.0 --port 80 --strictPort",

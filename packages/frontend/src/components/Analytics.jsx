@@ -72,7 +72,11 @@ const Analytics = () => {
 
   const processData = (tutorials, categories) => {
     // uncomment this for custom instrumentation (marks & measures) — START
-    // performance.mark('analytics:process-start');
+    //performance.mark('analytics:process-start');
+
+    // Synthetic latency — simulates heavy data crunching so the measure duration is observable
+    const _busyEnd = Date.now() + 200 + Math.floor(Math.random() * 600);
+    while (Date.now() < _busyEnd) { /* spin */ }
 
     // Filter tutorials by time range if necessary
     let filteredTutorials = [...tutorials];
@@ -186,7 +190,7 @@ const Analytics = () => {
     }
 
     // uncomment this for custom instrumentation (marks & measures) — END
-    /*
+    
     performance.mark('analytics:process-end');
     const processMeasure = performance.measure(
       'analytics-process',
@@ -206,7 +210,7 @@ const Analytics = () => {
         tutorialCount: filteredTutorials.length
       });
     }
-    */
+  
   };
 
   const timeRangeOptions = [
