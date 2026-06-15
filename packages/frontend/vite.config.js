@@ -7,13 +7,21 @@ export default defineConfig({
     react()
   ],
   cacheDir: '.vite',
-  optimizeDeps: {
-    force: false
-  },
   build: {
     minify: 'esbuild',
     reportCompressedSize: false,
     sourcemap: true,
+    cssCodeSplit: false,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return;
+          if (id.includes('/react-router') || id.includes('/react-dom/') || id.match(/\/react\/[^/]+$/)) return 'react-vendor';
+          if (id.includes('/primereact/') || id.includes('/@primeuix/') || id.includes('/@primereact/')) return 'primereact-vendor';
+          if (id.includes('/chart.js/')) return 'chart-vendor';
+        },
+      },
+    },
   },
   server: {
     port:80,
