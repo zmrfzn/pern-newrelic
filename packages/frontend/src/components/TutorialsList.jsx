@@ -11,6 +11,8 @@ import { Dropdown } from 'primereact/dropdown';
 import { Toast } from 'primereact/toast';
 import { ToggleButton } from 'primereact/togglebutton';
 import { Tag } from 'primereact/tag';
+import { IconField } from 'primereact/iconfield';
+import { InputIcon } from 'primereact/inputicon';
 import { mapCategories, mapDifficulty } from "../services/Util";
 
 const TutorialsList = () => {
@@ -252,15 +254,15 @@ const TutorialsList = () => {
   const header = (
     <div className="d-flex flex-wrap justify-content-between align-items-center">
       <div className="d-flex align-items-center mb-2 mb-md-0">
-        <span className="p-input-icon-left">
-          <i className="pi pi-search" />
+        <IconField iconPosition="left">
+          <InputIcon className="pi pi-search" />
           <InputText
             value={globalFilter}
             onChange={(e) => setGlobalFilter(e.target.value)}
             placeholder="Search in table..."
             className="p-inputtext-sm"
           />
-        </span>
+        </IconField>
       </div>
       
       <div className="d-flex flex-wrap">
